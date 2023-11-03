@@ -7,13 +7,14 @@ import {
 	RouterProvider,
 } from "react-router-dom";
 import "./Main.css";
-import { Editor } from "./views/Editor";
+import { Editor } from "./views/Editor/Index";
+import { Build } from "./views/Editor/Build";
 
 // You can do this:
 const router = createBrowserRouter(
 	createRoutesFromElements(
 		<Route path="/" element={<Editor />}>
-			{/* <Route index element={<h1 className="text-2xl">Hello World!</h1>} /> */}
+			<Route index element={<Build />}/>
 		</Route>
 	)
 );
