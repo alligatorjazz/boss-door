@@ -1,7 +1,7 @@
-# Tauri + React + Typescript
+# Boss Door
+> A wireframing app that lets you produce diagrams in the style of Mark Brown's [Boss Keys](https://www.patreon.com/posts/how-my-boss-key-13801754).
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Documentation coming soon.
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+[⚔ A Falchion Studios Project ⚔](https://falchionstudios.com/)
+Not affiliated with Mark Brown or GMTK. 
