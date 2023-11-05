@@ -4,10 +4,10 @@ module.exports = {
 		"es2021": true
 	},
 	"extends": [
-		"eslint:recommended",
 		"plugin:@typescript-eslint/recommended",
 		"plugin:react/recommended",
-		"plugin:react-hooks/recommended"
+		"plugin:react-hooks/recommended",
+		"eslint:recommended"
 	],
 	"overrides": [
 		{
@@ -48,6 +48,8 @@ module.exports = {
 			"error",
 			"always"
 		],
+		"no-unused-vars": "off",
+		"@typescript-eslint/no-unused-vars": ["error", { "ignoreRestSiblings": true }],
 		"react/react-in-jsx-scope": "off"
 	}
 };
