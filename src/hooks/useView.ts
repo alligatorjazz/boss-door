@@ -1,7 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { IApplicationOptions, Application, Container, Graphics } from "pixi.js";
-import { useState, useCallback, useEffect, MutableRefObject, useMemo } from "react";
-import { graphicsTest } from "../components/graphicsTest";
+import { useState, useCallback, useEffect, MutableRefObject } from "react";
 
 type ViewOptions = Partial<IApplicationOptions> & {
 	worldWidth: number,
