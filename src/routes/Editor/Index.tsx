@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { graphicsTest } from "../../components/graphicsTest";
 import { useView } from "../../hooks/useView";
 import { Application, Container, Graphics, IApplicationOptions } from "pixi.js";
@@ -16,7 +16,10 @@ export function Editor() {
 		worldHeight: 10000
 	}), []);
 
-	const { app, viewport, canvas } = useMemo(() => {
+	const [app, setApp] = useState<Application | null>();
+	const [world, setWorld] = useState<Container | null>();
+
+	const init = useCallback(() => {
 		const { worldWidth, worldHeight, ...appOptions } = options;
 		const app = new Application(appOptions);
 		const viewport = new Viewport({
@@ -30,20 +33,23 @@ export function Editor() {
 		viewport.cursor = "move";
 		viewport
 			.drag()
-			.decelerate();
-		
-		const canvas = new Container();
-		canvas.sortableChildren = true;
+			.decelerate()
+			.wheel()
+			.clamp({ direction: "all" });
+
+		const world = new Container();
+		world.sortableChildren = true;
 
 		const bg = new Graphics()
 			.beginFill("skyblue")
 			.drawRect(0, 0, worldWidth, worldHeight);
 		bg.zIndex = -100;
 
-		canvas.addChild(bg);
-		viewport.addChild(canvas);
+		world.addChild(bg);
+		viewport.addChild(world);
 		app.stage.addChild(viewport);
-		return { app, viewport, canvas };
+		setApp(app);
+		setWorld(world);
 	}, [options]);
 
 	// initializing app
@@ -54,20 +60,25 @@ export function Editor() {
 			throw new Error("Could not initialize app because the container was not found.");
 		}
 
-		// remove any extraneous canvases
-		document.querySelectorAll("canvas").forEach(element => element.remove());
-		if (!document.body.contains(app.view as HTMLCanvasElement)) {
-			app.resizeTo = container;
-			container.appendChild(app.view as HTMLCanvasElement);
+		if (!app) {
+			init();
 		}
-	}, [app]);
+
+		if (app && app.view && container) {
+			container.appendChild(app.view as HTMLCanvasElement);
+			app.resize();
+			app.resizeTo = container;
+		}
+	}, [app, init]);
 
 
 	// drawing 
 	useEffect(() => {
-		canvas.addChild(graphicsTest());
-		console.log(app.stage.children);
-	}, [app.stage.children, canvas]);
+		if (world && app) {
+			world.addChild(graphicsTest());
+			console.log(app.stage.children);
+		}
+	}, [app, world]);
 
 	return (
 		<div className="w-[100dvw] h-[100dvh] overflow-hidden" ref={containerRef}></div>
