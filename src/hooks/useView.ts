@@ -1,6 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { IApplicationOptions, Application, Container, Graphics } from "pixi.js";
-import { useState, useCallback,  useEffect, MutableRefObject } from "react";
+import { useState, useCallback, useEffect, MutableRefObject, useMemo } from "react";
 import { graphicsTest } from "../components/graphicsTest";
 
 type ViewOptions = Partial<IApplicationOptions> & {
@@ -11,27 +11,30 @@ type ViewOptions = Partial<IApplicationOptions> & {
 
 type DrawCallback = ({ app, world }: { app: Application, world: Container }) => void;
 type ViewHandles = {
-    app: Application | null | undefined;
-    world: Container | null | undefined;
-    draw: (callback: DrawCallback) => void;
+	app?: Application | null;
+	world?: Container | null;
+	viewport?: Viewport | null;
+	useCanvas: (callback: DrawCallback) => void;
 };
 
 export function useView(options: ViewOptions): Readonly<ViewHandles> {
 	const [app, setApp] = useState<Application | null>();
+	const [viewport, setViewport] = useState<Viewport | null>();
 	const [world, setWorld] = useState<Container | null>();
 
 	const init = useCallback(() => {
 		const { worldWidth, worldHeight, ...appOptions } = options;
 		const app = new Application(appOptions);
 		const viewport = new Viewport({
-			screenWidth: window.innerWidth,
-			screenHeight: window.innerHeight,
+			screenWidth: app.view.width,
+			screenHeight: app.view.height,
 			worldWidth,
 			worldHeight,
 			events: app.renderer.events
 		});
 
 		viewport.cursor = "move";
+
 		viewport
 			.drag()
 			.decelerate()
@@ -49,7 +52,9 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 		world.addChild(bg);
 		viewport.addChild(world);
 		app.stage.addChild(viewport);
+
 		setApp(app);
+		setViewport(viewport);
 		setWorld(world);
 	}, [options]);
 
@@ -71,21 +76,20 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 		}
 	}, [app, init, options.ref]);
 
-
-	// drawing 
+	// ensures viewport size maintains parity with app size
 	useEffect(() => {
-		if (world && app) {
-			world.addChild(graphicsTest());
-			console.log(app.stage.children);
+		if (app && viewport) {
+			app.renderer.on("resize", () => {
+				viewport.resize(app.view.width, app.view.height);
+			});
+		}
+	}, [app, viewport]);
+
+	const useCanvas = useCallback((callback: DrawCallback) => {
+		if (app && world) {
+			callback({ app, world });
 		}
 	}, [app, world]);
 
-
-	const draw = useCallback((callback: DrawCallback) => {
-		if (app && world) {
-			callback({ app, world });
-		} 
-	}, [app, world]);
-
-	return { app, world, draw };
+	return { app, world, viewport, useCanvas };
 }

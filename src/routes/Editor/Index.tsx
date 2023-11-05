@@ -5,7 +5,7 @@ import { useView } from "../../hooks/useView";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { draw } = useView({
+	const { useCanvas } = useView({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -14,7 +14,7 @@ export function Editor() {
 	});
 
 	// drawing 
-	draw(({ world }) => {
+	useCanvas(({ world }) => {
 		world.addChild(graphicsTest());
 	});
 
