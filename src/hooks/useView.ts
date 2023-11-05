@@ -35,7 +35,7 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 		viewport.cursor = "move";
 
 		viewport
-			.drag()
+			.drag({mouseButtons: "middle"})
 			.decelerate()
 			.wheel()
 			.clamp({ direction: "all" });

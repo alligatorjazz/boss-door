@@ -6,3 +6,8 @@
 	width: 100dvw;
 	height: 100dvh;
 }
+
+@font-face {
+	font-family: 'Poppins';
+	src: url("/fonts/Poppins/Poppins-Regular.ttf");
+}

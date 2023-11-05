@@ -1,7 +1,7 @@
 
 import { useRef } from "react";
-import { graphicsTest } from "../../components/graphicsTest";
 import { useView } from "../../hooks/useView";
+import { Entrance } from "../../components/canvas/Entrance";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -15,7 +15,7 @@ export function Editor() {
 
 	// drawing 
 	useCanvas(({ world }) => {
-		world.addChild(graphicsTest());
+		world.addChild(Entrance());
 	});
 
 	return (
