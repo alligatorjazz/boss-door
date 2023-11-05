@@ -40,13 +40,17 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 			.decelerate()
 			.wheel()
 			.clamp({ direction: "all" });
+		// viewport.fit();
+		viewport.moveCenter(worldWidth / 2, worldHeight / 2);
 
 		const world = new Container();
 		world.sortableChildren = true;
+		world.position.set(worldWidth / 2, worldHeight / 2);
 
 		const bg = new Graphics()
 			.beginFill("skyblue")
-			.drawRect(0, 0, worldWidth, worldHeight);
+			.drawRect(-worldWidth / 2, -worldHeight / 2, worldWidth, worldHeight);
+
 		bg.zIndex = -100;
 
 		world.addChild(bg);
