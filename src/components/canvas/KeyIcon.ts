@@ -14,7 +14,9 @@ export function KeyIcon({ bgColor, color, horns }: Props) {
 		t1: { x: -5, y: -20 },
 		t2: { x: -5, y: -7 },
 		horns: { y: -35 },
-		crop: { y: -42 }
+		crop1: { y: -38 },
+		crop2: { x: 20, y: -40 },
+		crop3: { y: -58 }
 	};
 
 	// dimensions
@@ -34,10 +36,19 @@ export function KeyIcon({ bgColor, color, horns }: Props) {
 	if (horns) {
 		icon
 			// horns
-			.drawEllipse(0, o.horns.y, 20, 20)
+			.beginFill(color)
+			.drawEllipse(0, o.horns.y, 18, 20)
 			// crop
 			.beginFill(bgColor)
-			.drawEllipse(0, o.crop.y, 24, 16);
+			.drawEllipse(0, o.crop1.y, 20, 10)
+			.endFill()
+			.beginFill(bgColor)
+			.lineStyle({ color, width: 0, alignment: 1 })
+			.moveTo(o.crop2.x, o.crop2.y)
+			.lineTo(o.crop2.x / 2, o.crop3.y * 0.93)
+			.lineTo(0, o.crop3.y)
+			.lineTo(-o.crop2.x / 2, o.crop3.y * 0.93)
+			.lineTo(-o.crop2.x, o.crop2.y);
 	}
 
 	icon

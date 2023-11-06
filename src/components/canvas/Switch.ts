@@ -1,5 +1,6 @@
 import { Graphics, Sprite } from "pixi.js";
 import { NodeObject } from "./NodeObject";
+
 type Props = { color: string; } & ({ iconText: string; } | { icon: Graphics | Sprite });
 export function Switch({ color, ...otherProps }: Props) {
 	const node = NodeObject({
