@@ -1,7 +1,7 @@
-import { Node } from "./Node";
+import { NodeObject } from "./NodeObject";
 
 export function Access(entryType: "entrance" | "exit" | "boss") {
-	const node = Node({
+	const node = NodeObject({
 		bgColor: "black",
 		fgColor: "white",
 		width: 128,

@@ -1,20 +1,20 @@
 import { Container, Graphics, Sprite, Text, TextStyle } from "pixi.js";
 
-type NodeShape = "circle" | "diamond" | "square";
+type NodeObjectShape = "circle" | "diamond" | "square";
 
-export type NodeIcon = Graphics | Sprite;
+export type NodeObjectIcon = Graphics | Sprite;
 
-export type NodeProps = {
+export type NodeObjectProps = {
 	fgColor: string;
 	bgColor: string;
 	width: number;
 	height?: number;
 	bgOffset?: number;
 	sizeOffset?: number;
-	shape: NodeShape;
-} & ({ icon: NodeIcon } | { iconText: string, fontSize?: number })
+	shape: NodeObjectShape;
+} & ({ icon: NodeObjectIcon } | { iconText: string, fontSize?: number })
 
-export function Node(props: NodeProps) {
+export function NodeObject(props: NodeObjectProps) {
 	const { fgColor, bgColor, width, shape } = props;
 	const height = props.height ?? width;
 

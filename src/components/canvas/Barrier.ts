@@ -1,9 +1,9 @@
 import { Graphics, Sprite } from "pixi.js";
-import { Node } from "./Node";
+import { NodeObject } from "./NodeObject";
 
 type Props = { color: string; } & ({ iconText: string; } | { icon: Graphics | Sprite });
 export function Barrier({ color, ...otherProps }: Props) {
-	const node = Node({
+	const node = NodeObject({
 		width: 128,
 		fgColor: color,
 		bgColor: "black",
