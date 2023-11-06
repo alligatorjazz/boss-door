@@ -2,10 +2,11 @@ import { Graphics } from "pixi.js";
 
 interface Props {
 	bgColor: string,
-	color: string
+	color: string,
+	horns?: boolean
 }
 
-export function KeyIcon({ bgColor, color }: Props) {
+export function KeyIcon({ bgColor, color, horns }: Props) {
 	// offsets
 	const o = {
 		handle: -15,
@@ -28,12 +29,18 @@ export function KeyIcon({ bgColor, color }: Props) {
 		.drawRect(-d.staff.w / 2, o.staff.y, d.staff.w, d.staff.h)
 		// teeth
 		.drawRoundedRect(d.staff.w / 2 + o.t1.x, d.staff.h + o.staff.y + o.t1.y, 10, 7, 10)
-		.drawRoundedRect(d.staff.w / 2 + o.t2.x, d.staff.h + o.staff.y + o.t2.y, 14, 7, 10)
-		// horns
-		.drawEllipse(0, o.horns.y, 20, 20)
-		// crop
-		.beginFill(bgColor)
-		.drawEllipse(0, o.crop.y, 24, 16)
+		.drawRoundedRect(d.staff.w / 2 + o.t2.x, d.staff.h + o.staff.y + o.t2.y, 14, 7, 10);
+
+	if (horns) {
+		icon
+			// horns
+			.drawEllipse(0, o.horns.y, 20, 20)
+			// crop
+			.beginFill(bgColor)
+			.drawEllipse(0, o.crop.y, 24, 16);
+	}
+
+	icon
 		// handle
 		.beginFill(color)
 		.drawCircle(0, o.handle, d.handle)
