@@ -20,11 +20,14 @@ export function Editor() {
 	useCanvas(({ world }) => {
 		const icons: DisplayObject[] = [
 			Access("entrance"),
-			Access("exit")
+			Access("exit"),
+			
 		];
-		
+
 		icons.map((icon, index) => {
-			icon.position.set(index * 200, 0);
+			index % 2 == 0 ?
+				icon.position.set(0, index / 2 * 200) :
+				icon.position.set(200, Math.floor(index / 2) * 200);
 			world.addChild(icon);
 		});
 	});
