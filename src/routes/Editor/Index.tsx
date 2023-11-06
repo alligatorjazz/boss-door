@@ -2,8 +2,10 @@
 import { useRef } from "react";
 import { useView } from "../../hooks/useView";
 import { Access } from "../../components/canvas/Access";
-import { DisplayObject } from "pixi.js";
+import { DisplayObject, Graphics, Sprite } from "pixi.js";
 import { Barrier } from "../../components/canvas/Barrier";
+import reference from "../../assets/gmtk/graph-bossdoor.png";
+import { BossDoor } from "../../components/canvas/BossDoor";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -20,15 +22,16 @@ export function Editor() {
 	// drawing 
 	useCanvas(({ world }) => {
 		const icons: DisplayObject[] = [
-			Access("entrance"),
-			Access("exit"),
-			Barrier({color: "green", label: "A"}),
-			Barrier({color: "blue", label: "B"}),
-			Barrier({color: "red", label: "C"}),
-			Barrier({color: "orange", label: "D"}),
-			Barrier({color: "violet", label: "E"}),
-			Barrier({color: "teal", label: "F"}),
-			
+			// Access("entrance"),
+			// Access("boss"),
+			// Barrier({color: "green", iconText: "A"}),
+			// Barrier({color: "blue", iconText: "B"}),
+			// Barrier({color: "red", iconText: "C"}),
+			// Barrier({color: "orange", iconText: "D"}),
+			// Barrier({color: "violet", iconText: "E"}),
+			// Barrier({color: "teal", iconText: "F"}),
+			Sprite.from(reference),
+			BossDoor({ color: "#46b4f0" })
 		];
 
 		icons.map((icon, index) => {

@@ -1,12 +1,8 @@
-import { Container, Graphics, TextStyle, Text, Sprite, Point } from "pixi.js";
+import { Container, Graphics, Sprite, Text, TextStyle } from "pixi.js";
 
 type NodeShape = "circle" | "diamond" | "square";
 
-export type NodeIcon = {
-	url: string;
-	scale?: Point;
-	color: string;
-}
+export type NodeIcon = Graphics | Sprite;
 
 export type NodeProps = {
 	fgColor: string;
@@ -90,11 +86,7 @@ export function Node(props: NodeProps) {
 	}
 
 	if ("icon" in props) {
-		const { url, scale, color } = props.icon;
-		const sprite = Sprite.from(url);
-		if (scale) { sprite.scale.copyFrom(scale); }
-		sprite.tint = color;
-		container.addChild(sprite);
+		container.addChild(props.icon);
 	}
 
 	return container;
