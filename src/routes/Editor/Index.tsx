@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { useView } from "../../hooks/useView";
 import { Access } from "../../components/canvas/Access";
 import { DisplayObject } from "pixi.js";
+import { Barrier } from "../../components/canvas/Barrier";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,12 @@ export function Editor() {
 		const icons: DisplayObject[] = [
 			Access("entrance"),
 			Access("exit"),
+			Barrier({color: "green", label: "A"}),
+			Barrier({color: "blue", label: "B"}),
+			Barrier({color: "red", label: "C"}),
+			Barrier({color: "orange", label: "D"}),
+			Barrier({color: "violet", label: "E"}),
+			Barrier({color: "teal", label: "F"}),
 			
 		];
 
