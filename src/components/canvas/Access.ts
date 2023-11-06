@@ -1,10 +1,11 @@
+import { standardNodeWidth } from "../../lib";
 import { NodeObject } from "./NodeObject";
 
 export function Access(entryType: "entrance" | "exit" | "boss") {
 	const node = NodeObject({
 		bgColor: "black",
 		fgColor: "white",
-		width: 128,
+		width: standardNodeWidth,
 		iconText: entryType.toUpperCase(),
 		shape: "circle",
 	});

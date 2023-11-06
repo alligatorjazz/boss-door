@@ -55,12 +55,19 @@ export function NodeObject(props: NodeObjectProps) {
 		}
 
 		case "diamond": {
+			const radius = 5;
 			const bgGraphics = new Graphics()
 				.beginFill(bgColor)
-				.drawEllipse(0, height * bgOffset, width, height * (1 + bgOffset));
+				.drawRoundedRect(-width / 2, -height / 2, width * (1 + bgOffset), height * (1 + bgOffset), radius);
 			const fgGraphics = new Graphics()
 				.beginFill(fgColor)
-				.drawCircle(0, 0, width * sizeOffset);
+				.drawRoundedRect(
+					(-width / 2) + width * (1 - sizeOffset) / 2,
+					(-height / 2) + height * (1 - sizeOffset) / 2,
+					width * sizeOffset,
+					height * sizeOffset,
+					radius
+				);
 			bg = new Container();
 			fg = new Container();
 			bg.addChild(bgGraphics);

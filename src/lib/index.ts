@@ -17,3 +17,5 @@ export function updatePixiChildren(container: Container, ...children: ReactEleme
 		}
 	}
 }
+
+export const standardNodeWidth = 128;
