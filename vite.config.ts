@@ -1,9 +1,16 @@
-import { defineConfig } from "vite";
+import { PluginOption, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+
+const fullReloadAlways: PluginOption = {
+	handleHotUpdate({ server }) {
+		server.ws.send({ type: "full-reload" });
+		return [];
+	},
+} as PluginOption;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-	plugins: [react()],
+	plugins: [react(), fullReloadAlways],
 
 	// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
 	//
