@@ -1,7 +1,8 @@
 
 import { useRef } from "react";
 import { useView } from "../../hooks/useView";
-import { Entrance } from "../../components/canvas/Entrance";
+import { Access } from "../../components/canvas/Access";
+import { DisplayObject } from "pixi.js";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -10,12 +11,22 @@ export function Editor() {
 		height: window.innerHeight,
 		worldWidth: 10000,
 		worldHeight: 10000,
-		ref: containerRef
+		ref: containerRef,
+		backgroundColor: "slategray",
+		antialias: true
 	});
 
 	// drawing 
 	useCanvas(({ world }) => {
-		world.addChild(Entrance());
+		const icons: DisplayObject[] = [
+			Access("entrance"),
+			Access("exit")
+		];
+		
+		icons.map((icon, index) => {
+			icon.position.set(index * 200, 0);
+			world.addChild(icon);
+		});
 	});
 
 	return (

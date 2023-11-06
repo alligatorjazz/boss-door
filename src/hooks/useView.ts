@@ -22,7 +22,7 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 	const [world, setWorld] = useState<Container | null>();
 
 	const init = useCallback(() => {
-		const { worldWidth, worldHeight, ...appOptions } = options;
+		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
 		const app = new Application(appOptions);
 		const viewport = new Viewport({
 			screenWidth: app.view.width,
@@ -47,7 +47,7 @@ export function useView(options: ViewOptions): Readonly<ViewHandles> {
 		world.position.set(worldWidth / 2, worldHeight / 2);
 
 		const bg = new Graphics()
-			.beginFill("skyblue")
+			.beginFill(backgroundColor)
 			.drawRect(-worldWidth / 2, -worldHeight / 2, worldWidth, worldHeight);
 
 		bg.zIndex = -100;
