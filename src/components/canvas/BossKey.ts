@@ -1,4 +1,3 @@
-import { Barrier } from "./Barrier";
 import { KeyIcon } from "./KeyIcon";
 import { Switch } from "./Switch";
 

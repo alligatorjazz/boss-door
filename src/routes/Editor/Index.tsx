@@ -1,30 +1,28 @@
 
-import { DisplayObject, Sprite } from "pixi.js";
-import { useRef } from "react";
-import ref1 from "../../assets/gmtk/graph-bossdoor.png";
-import ref2 from "../../assets/gmtk/graph-bosskey.png";
+import { DisplayObject } from "pixi.js";
+import { useRef, useState } from "react";
 import { BossDoor } from "../../components/canvas/BossDoor";
-import { useView } from "../../hooks/useView";
-import { Switch } from "../../components/canvas/Switch";
 import { BossKey } from "../../components/canvas/BossKey";
+import { ViewMode, useView } from "../../hooks/useView";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { useCanvas } = useView({
+	const [mode] = useState<ViewMode>("move");
+
+	const { build } = useView({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
 		worldHeight: 10000,
 		ref: containerRef,
-		backgroundColor: "slategray",
-		antialias: true
+		backgroundColor: "slategray", 
+		antialias: true,
+		mode
 	});
 
 	// drawing 
-	useCanvas(({ world }) => {
+	build(({ world }) => {
 		const icons: DisplayObject[] = [
-			// Sprite.from(ref1),
-			// Sprite.from(ref2),
 			BossKey({ color: "red" }),
 			BossDoor({ color: "red" })
 		];
