@@ -1,4 +1,4 @@
-import { Barrier } from "./Barrier";
+import { Barrier } from "./BarrierObject";
 import { KeyIcon } from "./KeyIcon";
 
 type Props = { color: string; }
