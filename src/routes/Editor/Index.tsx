@@ -3,13 +3,13 @@ import { DisplayObject } from "pixi.js";
 import { useRef, useState } from "react";
 import { BossDoor } from "../../components/canvas/BossDoor";
 import { BossKey } from "../../components/canvas/BossKey";
-import { ViewMode, useView } from "../../hooks/useView";
+import { EditMode, useEdit } from "../../hooks/useEdit";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [mode] = useState<ViewMode>("move");
+	const [mode] = useState<EditMode>("move");
 
-	const { build } = useView({
+	const { build } = useEdit({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
