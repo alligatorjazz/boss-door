@@ -1,13 +1,14 @@
 import { standardNodeWidth } from "../../lib";
 import { NodeObject } from "./NodeObject";
 
-export function Access(entryType: "entrance" | "exit" | "boss") {
+export function Terminal(entryType: "entrance"  | "exit") {
+	// TODO: add case that adds flag icon when "objective" is enabled
 	const node = NodeObject({
 		bgColor: "black",
 		fgColor: "white",
 		width: standardNodeWidth,
-		iconText: entryType.toUpperCase(),
 		shape: "circle",
+		iconText: entryType.toUpperCase(),
 	});
 
 	return node;
