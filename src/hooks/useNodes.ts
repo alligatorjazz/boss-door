@@ -1,12 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
-import { Terminal } from "../components/canvas/Terminal";
-import { randomColor } from "../lib";
-import { Barrier, Boss, Entrance, Goal, Key, Lock, Node, NodePairMatch, NodeType, Nodes, Switch, } from "../types/nodes";
+import { Container } from "pixi.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
+import { Terminal } from "../components/canvas/Terminal";
+import { randomColor } from "../lib";
+import { Barrier, Boss, Entrance, Goal, MapNodeType, MapNodes, NodePairMatch, Switch, Key, MapNode, Lock } from "../types/nodes";
 
-export function useNodes() {
-	const [nodes, setNodes] = useState<Node[]>([]);
+export function useNodes(world?: Container | null) {
+	const [nodes, setNodes] = useState<MapNode[]>([]);
 	const nextId = useMemo(() => {
 		let id = crypto.randomUUID();
 		// loops through node list until it finds unused id, prevents id collision
@@ -17,11 +18,11 @@ export function useNodes() {
 		return id;
 	}, [nodes]);
 
-	const create = useCallback(<T extends NodeType>(type: T, nodeName: string): Nodes<T> => {
+	const createNode = useCallback(<T extends MapNodeType>(type: T, nodeName: string): MapNodes<T> => {
 		const name = nodeName ?? (nodes.length + 1).toString();
 		const tracked = ["position" as const];
 		const id = nextId;
-		let node: Node;
+		let node: MapNode;
 
 		switch (type) {
 			case "entrance": {
@@ -145,12 +146,25 @@ export function useNodes() {
 				node = data;
 				break;
 			}
-
 			default: {
 				throw new Error("Could not create node.");
 			}
 		}
+
 		setNodes(prev => [...prev, node]);
-		return node as Nodes<T>;
+		return node as MapNodes<T>;
 	}, [nextId, nodes]);
+
+	useEffect(() => {
+		if (world) {
+			nodes.map(node => {
+				if (!world.children.includes(node.obj)) {
+					world.addChild(node.obj);
+				}
+			});
+		}
+
+	}, [nodes, world]);
+
+	return { nodes, createNode };
 }

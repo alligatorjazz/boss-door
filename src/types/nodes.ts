@@ -8,8 +8,8 @@ type DerivedNodeType = {
 	"barrier": "barrier" | "lock"
 }
 
-export type NodeType = BaseNodeType | DerivedNodeType[BaseNodeType];
-export interface INode<Type extends NodeType, TrackedObjectState extends keyof DisplayObject = "position"> {
+export type MapNodeType = BaseNodeType | DerivedNodeType[BaseNodeType];
+interface IMapNode<Type extends MapNodeType, TrackedObjectState extends keyof DisplayObject = "position"> {
 	type: Type;
 	id: string;
 	name: string;
@@ -18,25 +18,25 @@ export interface INode<Type extends NodeType, TrackedObjectState extends keyof D
 }
 
 
-export interface Entrance extends INode<"entrance"> { }
+export interface Entrance extends IMapNode<"entrance"> { }
 
-export interface Key extends INode<"key"> {
+export interface Key extends IMapNode<"key"> {
 	lockId?: string;
 	color: string;
 }
 
-export interface Lock extends INode<"lock"> {
+export interface Lock extends IMapNode<"lock"> {
 	keyId?: string;
 	color: string;
 }
 
-export interface Boss extends INode<"boss"> { }
-export interface Goal extends INode<"goal"> { }
-export interface Switch extends INode<"switch"> {
+export interface Boss extends IMapNode<"boss"> { }
+export interface Goal extends IMapNode<"goal"> { }
+export interface Switch extends IMapNode<"switch"> {
 	barrierId?: string;
 	color: string;
 }
-export interface Barrier extends INode<"barrier"> {
+export interface Barrier extends IMapNode<"barrier"> {
 	switchId?: string;
 	color: string;
 }
@@ -49,8 +49,8 @@ export type NodePairMatch<T extends "key" | "switch" | "barrier" | "lock"> = { c
 		T extends "lock" ? Pick<Lock, "keyId"> : never
 	);
 
-export type Node = Entrance | Key | Lock | Boss | Goal | Switch | Barrier;
-export type Nodes<T extends NodeType> =
+export type MapNode = Entrance | Key | Lock | Boss | Goal | Switch | Barrier;
+export type MapNodes<T extends MapNodeType> =
 	T extends "entrance" ? Entrance :
 	T extends "key" ? Key :
 	T extends "lock" ? Entrance :

@@ -1,11 +1,11 @@
 import { Graphics, Sprite } from "pixi.js";
-import { NodeObject } from "./NodeObject";
-import { standardNodeWidth } from "../../lib";
+import { nodeObject } from "./nodeObject";
+import { standardnodeWidth } from "../../lib";
 
 type Props = { color: string; } & ({ iconText: string; } | { icon: Graphics | Sprite });
 export function BarrierObject({ color, ...otherProps }: Props) {
-	const node = NodeObject({
-		width: standardNodeWidth,
+	const node = nodeObject({
+		width: standardnodeWidth,
 		fgColor: color,
 		bgColor: "black",
 		shape: "square",
