@@ -34,6 +34,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
+    "ts-to-zod": "^3.2.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.4"
   }

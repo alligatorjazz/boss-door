@@ -3,13 +3,11 @@ import { Application, Container, Graphics } from "pixi.js";
 import { useCallback, useEffect, useState } from "react";
 import { ExtendedViewport } from "../components/canvas/ExtendedViewport";
 import { CanvasHandles, CanvasOptions } from "../types";
-import { useNodes } from "./useNodes";
 
 export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles> {
 	const [app, setApp] = useState<Application | null>();
 	const [viewport, setViewport] = useState<Viewport | null>();
 	const [world, setWorld] = useState<Container | null>();
-	const { nodes, createNode } = useNodes(world);
 
 	const init = useCallback(() => {
 		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
@@ -71,5 +69,6 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 	}, [app, viewport]);
 
 
-	return { app, world, viewport, nodes, createNode };
+
+	return { app, world, viewport };
 }

@@ -2,10 +2,13 @@ import { FederatedPointerEvent } from "pixi.js";
 import { useCallback, useEffect } from "react";
 import { ViewHook } from "../types";
 import { useCanvas } from "./useCanvas";
+import { useNodes } from "./useNodes";
 
 export type EditMode = "move" | "static"
-export const useEdit: ViewHook<{ mode: EditMode }> = ({ mode, ...options }) => {
+export const useEdit: ViewHook<{ mode: EditMode }, any> = ({ mode, ...options }) => {
 	const { app, viewport, world } = useCanvas(options);
+	const { nodes, createNode } = useNodes(world);
+
 	// callbacks to change cursors based on pointer events
 	const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
 		console.log(e, world?.cursor);
@@ -82,7 +85,5 @@ export const useEdit: ViewHook<{ mode: EditMode }> = ({ mode, ...options }) => {
 		}
 	}, [mode, viewport, world]);
 
-
-
-	return {};
+	return { createNode, nodes };
 };
