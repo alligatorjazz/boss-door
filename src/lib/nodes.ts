@@ -1,5 +1,5 @@
 import { DisplayObject } from "pixi.js";
-import { AnyZodObject, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
+import { AnyZodObject, ZodEnum, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
 import { randomColor, toTitleCase } from ".";
 
 const DisplayObjectReferenceSchema = z.string()
@@ -14,24 +14,21 @@ const JsonSchema: z.ZodType<Json> = z.lazy(() =>
 
 const MapNodeTypeSchema = z.enum(["entrance", "objective", "switch", "barrier"]);
 type MapNodeType = z.infer<typeof MapNodeTypeSchema>;
+type DerivedObjectState = ["position", ...(keyof DisplayObject)[]];
+// TODO: turn derive into object of booleans
+const derive = <T extends DerivedObjectState>(keys: ZodEnum<T>): ZodEnum<T> => {
+	return keys;
+};
 
-const defaultDerive: (keyof DisplayObject)[] = ["position"];
-const derive = <T extends keyof DisplayObject>(...keys: (T)[]) => DisplayObjectReferenceSchema
-	.array()
-	.refine(allPossibleKeys => {
-		let valid = true;
-		for (const value of allPossibleKeys) {
-			valid = value in keys;
-		}
+const defaultDerive = derive(z.enum(["position"]));
 
-		return valid;
-	})
-	.transform(keys => keys as T[]);
-
-
-const defineMapNode = <T extends MapNodeType, K extends AnyZodObject | ZodOptional<ZodNull>>(type: ZodLiteral<T>, stateSchema: {
+const defineMapNode = <
+	T extends MapNodeType,
+	K extends AnyZodObject | ZodOptional<ZodNull>,
+	R extends DerivedObjectState
+>(type: ZodLiteral<T>, stateSchema: {
 	internal: K,
-	derived: ReturnType<typeof derive>
+	derived: ZodEnum<R>
 }) => {
 	// prevent name collisions with display object keys
 	if (stateSchema.internal) {
@@ -47,7 +44,7 @@ const defineMapNode = <T extends MapNodeType, K extends AnyZodObject | ZodOption
 		id: z.string(),
 		displayName: z.string(),
 		state: z.object({
-			derived: stateSchema.derived.optional(),
+			derived: stateSchema.derived.array().optional(),
 			internal: stateSchema.internal,
 		})
 	});
@@ -56,24 +53,24 @@ const defineMapNode = <T extends MapNodeType, K extends AnyZodObject | ZodOption
 // type f = ReturnType<typeof defineMapNode<"barrier", ZodObject<{ test: ZodString }>>>;
 
 const EntranceNodeSchema = defineMapNode(z.literal("entrance"), {
-	derived: derive(...defaultDerive),
+	derived: defaultDerive,
 	internal: z.null().optional()
 });
 
 const ObjectiveNodeSchema = defineMapNode(z.literal("objective"), {
-	derived: derive(...defaultDerive),
+	derived: defaultDerive,
 	internal: z.null().optional()
 });
 
 const BarrierNodeSchema = defineMapNode(z.literal("barrier"), {
-	derived: derive(...defaultDerive),
+	derived: derive(z.enum(["position", "scale", "zIndex"])),
 	internal: z.object({
 		color: z.string()
 	})
 });
 
 const SwitchNodeSchema = defineMapNode(z.literal("switch"), {
-	derived: derive(...defaultDerive),
+	derived: defaultDerive,
 	internal: z.object({
 		barrierId: z.string().nullish(),
 		color: z.string()
@@ -186,3 +183,5 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 		}
 	}
 }
+
+type X = MapNodes<"barrier">["state"]["derived"]

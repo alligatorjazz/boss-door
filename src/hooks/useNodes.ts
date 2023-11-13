@@ -1,11 +1,12 @@
 import { Container, DisplayObject } from "pixi.js";
 import { useCallback, useEffect, useState } from "react";
-import { MapNode, createNode } from "../lib/nodes";
+import { MapNode, MapNodes, createNode } from "../lib/nodes";
 import { TerminalObject } from "../components/canvas/TerminalObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
+	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> }>({});
 	const [objects, setObjects] = useState<{ [nodeId: string]: DisplayObject }>({});
 
 	// sync nodes with objects
@@ -13,24 +14,24 @@ export function useNodes(world?: Container | null) {
 		setObjects(prev => {
 			const newObjects: typeof objects = {};
 			for (const node of nodes) {
+				let obj: DisplayObject;
 				switch (node.type) {
 					case "entrance": {
-						newObjects[node.id] = TerminalObject(node);
+						obj = TerminalObject(node);
 						break;
 					}
 					case "objective": {
-						newObjects[node.id] = TerminalObject(node);
+						obj = TerminalObject(node);
 						break;
 					}
 					case "switch": {
-						newObjects[node.id] = SwitchObject(node);
+						obj = SwitchObject(node);
 						break;
 					}
 					case "barrier": {
-						newObjects[node.id] = BarrierObject(node);
+						obj = BarrierObject(node);
 						break;
 					}
-
 				}
 			}
 
@@ -53,8 +54,12 @@ export function useNodes(world?: Container | null) {
 		}
 	}, [objects, world]);
 
-	type AddOptions = { name: string, type: MapNode["type"] }
-	const add = useCallback((options: AddOptions) => {
+	type AddOptions<T extends MapNode["type"]> = {
+		name: string,
+		initialState?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
+	}
+	
+	const add = useCallback(<T extends MapNode["type"]>({ name, initialState }: AddOptions<T>) => {
 		setNodes(prev => {
 			const newNode = createNode({ ...options, matchAgainst: prev });
 			return [...prev, newNode];
