@@ -5,9 +5,9 @@ import { useCanvas } from "./useCanvas";
 import { useNodes } from "./useNodes";
 
 export type EditMode = "move" | "static"
-export const useEdit: ViewHook<{ mode: EditMode }, any> = ({ mode, ...options }) => {
+export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> = ({ mode, ...options }) => {
 	const { app, viewport, world } = useCanvas(options);
-	const { nodes, createNode } = useNodes(world);
+	const { add } = useNodes(world);
 
 	// callbacks to change cursors based on pointer events
 	const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -85,5 +85,5 @@ export const useEdit: ViewHook<{ mode: EditMode }, any> = ({ mode, ...options })
 		}
 	}, [mode, viewport, world]);
 
-	return { createNode, nodes };
+	return { add };
 };

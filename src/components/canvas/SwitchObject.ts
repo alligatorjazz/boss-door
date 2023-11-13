@@ -1,17 +1,16 @@
-import { Graphics, Sprite } from "pixi.js";
+import { MapNodes } from "../../lib/nodes";
 import { NodeObject } from "./NodeObject";
 
-type Props = { color: string; } & ({ iconText: string; } | { icon: Graphics | Sprite });
-export function SwitchObject({ color, ...otherProps }: Props) {
-	const node = NodeObject({
+export function SwitchObject(node: MapNodes<"switch">) {
+	const obj = NodeObject({
 		bgColor: "black",
-		fgColor: color,
+		fgColor: node.state.internal.color,
 		width: 100,
 		shape: "diamond",
 		fontSize: 40,
 		bgOffset: 0.04,
-		...otherProps
+		iconText: node.displayName
 	});
 
-	return node;
+	return obj;
 }

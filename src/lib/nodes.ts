@@ -12,7 +12,7 @@ const JsonSchema: z.ZodType<Json> = z.lazy(() =>
 	z.union([literalSchema, z.array(JsonSchema), z.record(JsonSchema)])
 );
 
-const MapNodeTypeSchema = z.enum(["terminal", "objective", "switch", "barrier"]);
+const MapNodeTypeSchema = z.enum(["entrance", "objective", "switch", "barrier"]);
 type MapNodeType = z.infer<typeof MapNodeTypeSchema>;
 
 const defaultDerive: (keyof DisplayObject)[] = ["position"];
@@ -45,7 +45,7 @@ const defineMapNode = <T extends MapNodeType, K extends AnyZodObject | ZodOption
 	return z.object({
 		type,
 		id: z.string(),
-		displayName: z.string().nullish(),
+		displayName: z.string(),
 		state: z.object({
 			derived: stateSchema.derived.optional(),
 			internal: stateSchema.internal,
@@ -55,7 +55,7 @@ const defineMapNode = <T extends MapNodeType, K extends AnyZodObject | ZodOption
 
 // type f = ReturnType<typeof defineMapNode<"barrier", ZodObject<{ test: ZodString }>>>;
 
-const TerminalNodeSchema = defineMapNode(z.literal("terminal"), {
+const EntranceNodeSchema = defineMapNode(z.literal("entrance"), {
 	derived: derive(...defaultDerive),
 	internal: z.null().optional()
 });
@@ -81,7 +81,7 @@ const SwitchNodeSchema = defineMapNode(z.literal("switch"), {
 });
 
 export const MapNodeSchema = z.discriminatedUnion("type", [
-	TerminalNodeSchema,
+	EntranceNodeSchema,
 	ObjectiveNodeSchema,
 	BarrierNodeSchema,
 	SwitchNodeSchema
@@ -90,25 +90,44 @@ export const MapNodeSchema = z.discriminatedUnion("type", [
 export type MapNode = z.infer<typeof MapNodeSchema>;
 
 export type MapNodes<T extends MapNodeType> =
-	T extends "terminal" ? z.infer<typeof TerminalNodeSchema> :
+	T extends "entrance" ? z.infer<typeof EntranceNodeSchema> :
 	T extends "objective" ? z.infer<typeof ObjectiveNodeSchema> :
 	T extends "switch" ? z.infer<typeof SwitchNodeSchema> :
 	T extends "barrier" ? z.infer<typeof BarrierNodeSchema> :
 	never
 
 
-export function createNode<T extends MapNodeType>(type: T, nodeName?: string, matchAgainst?: MapNode[]): MapNodes<T> {
-	console.log("createNode: beginning node creation: ", type, nodeName);
-	const displayName = nodeName ?? toTitleCase(type);
+type CreateNodeOptions<T extends MapNodeType> = {
+	type: T,
+	name?: string,
+	matchAgainst: MapNode[]
+}
+export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: CreateNodeOptions<T>): MapNodes<T> {
+	console.log("createNode: beginning node creation: ", type, name);
+	const displayName = name ?? toTitleCase(type);
 	const id = crypto.randomUUID();
 
 	switch (type) {
-		case "terminal": {
-			const node: MapNodes<"terminal"> = {
+		case "entrance": {
+			const node: MapNodes<"entrance"> = {
 				type,
 				displayName,
 				id,
-				state: { derived: ["position"] }
+				state: {
+					derived: ["position"]
+				}
+			};
+
+			return node as MapNodes<T>;
+		}
+		case "objective": {
+			const node: MapNodes<"objective"> = {
+				type,
+				displayName,
+				id,
+				state: {
+					derived: ["position"]
+				}
 			};
 
 			return node as MapNodes<T>;
@@ -127,7 +146,7 @@ export function createNode<T extends MapNodeType>(type: T, nodeName?: string, ma
 						return value;
 					}
 				}
-			});
+			}) as MapNodes<"barrier"> | null;
 
 			// const color = autoMatch?.color ?? randomColor();
 			const node: MapNodes<"switch"> = {
@@ -145,19 +164,16 @@ export function createNode<T extends MapNodeType>(type: T, nodeName?: string, ma
 			return node as MapNodes<T>;
 		}
 		case "barrier": {
-
 			// attempt to find an existing key with no lock attached
 			const autoMatch = matchAgainst?.find(value => {
 				if (value.type === "switch" && !value.state.internal.barrierId) {
-					// attaches the key to the barrier from the other end
-					value.state.internal.barrierId = id;
 					return value;
 				}
-			});
+			}) as MapNodes<"switch"> | null;
 
 			const node: MapNodes<"barrier"> = {
 				type,
-				displayName,
+				displayName: autoMatch?.displayName ?? String.fromCharCode(97 + matchAgainst.length - 1),
 				id,
 				state: {
 					internal: { color: autoMatch?.state.internal?.color ?? randomColor() }
@@ -166,7 +182,7 @@ export function createNode<T extends MapNodeType>(type: T, nodeName?: string, ma
 			return node as MapNodes<T>;
 		}
 		default: {
-			throw new Error("Could not create node - type invalid.");
+			throw new Error("Invalid node type: " + type);
 		}
 	}
 }

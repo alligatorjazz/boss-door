@@ -1,18 +1,17 @@
-import { Graphics, Sprite } from "pixi.js";
-import { NodeObject } from "./NodeObject";
 import { standardNodeWidth } from "../../lib";
+import { MapNodes } from "../../lib/nodes";
+import { NodeObject } from "./NodeObject";
 
-type Props = { color: string; } & ({ iconText: string; } | { icon: Graphics | Sprite });
-export function BarrierObject({ color, ...otherProps }: Props) {
-	const node = NodeObject({
+export function BarrierObject(node: MapNodes<"barrier">) {
+	const obj = NodeObject({
 		width: standardNodeWidth,
-		fgColor: color,
+		fgColor: node.state.internal.color,
 		bgColor: "black",
 		shape: "square",
 		fontSize: 40,
 		bgOffset: 0.03,
-		...otherProps
+		iconText: node.displayName
 	});
 
-	return node;
+	return obj;
 }

@@ -1,38 +1,65 @@
-import { Container } from "pixi.js";
+import { Container, DisplayObject } from "pixi.js";
 import { useCallback, useEffect, useState } from "react";
-import { BarrierObject } from "../components/canvas/BarrierObject";
+import { MapNode, createNode } from "../lib/nodes";
+import { TerminalObject } from "../components/canvas/TerminalObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
-import { Terminal } from "../components/canvas/Terminal";
-import { randomColor, toTitleCase } from "../lib";
-import { Barrier, Boss, Entrance, Goal, Key, Lock, MapNode, MapNodeType, MapNodes, NodePairMatch, Switch } from "../lib/nodes";
-
+import { BarrierObject } from "../components/canvas/BarrierObject";
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
+	const [objects, setObjects] = useState<{ [nodeId: string]: DisplayObject }>({});
 
-	// const addNode = useCallback((newNode: MapNode) => {
-	// 	const collision = nodes.find(node => node.id == newNode.id);
-	// 	console.log(`checking id: ${collision?.id} | ${newNode.id}`);
-	// 	if (!collision) {
-	// 		setNodes(prev => [...prev, newNode]);
-	// 	} else {
-	// 		console.warn("Attempt to add node failed - name collision.");
-	// 		console.trace();
-	// 	}
-	// }, [nodes]);
+	// sync nodes with objects
+	useEffect(() => {
+		setObjects(prev => {
+			const newObjects: typeof objects = {};
+			for (const node of nodes) {
+				switch (node.type) {
+					case "entrance": {
+						newObjects[node.id] = TerminalObject(node);
+						break;
+					}
+					case "objective": {
+						newObjects[node.id] = TerminalObject(node);
+						break;
+					}
+					case "switch": {
+						newObjects[node.id] = SwitchObject(node);
+						break;
+					}
+					case "barrier": {
+						newObjects[node.id] = BarrierObject(node);
+						break;
+					}
 
-	
+				}
+			}
 
+			for (const nodeId in prev) {
+				prev[nodeId].destroy();
+			}
+
+			return newObjects;
+		});
+	}, [nodes]);
+
+	// sync objects with world 
 	useEffect(() => {
 		if (world) {
-			console.log("useNodes/useEffect: syncing nodes with world");
-
-			nodes.map(node => {
-				if (!world.children.includes(node.obj)) {
-					world.addChild(node.obj);
+			for (const obj of Object.values(objects)) {
+				if (!world.children.includes(obj)) {
+					world.addChild(obj);
 				}
-			});
+			}
 		}
-	}, [nodes, world]);
+	}, [objects, world]);
 
-	return { nodes, createNode };
+	type AddOptions = { name: string, type: MapNode["type"] }
+	const add = useCallback((options: AddOptions) => {
+		setNodes(prev => {
+			const newNode = createNode({ ...options, matchAgainst: prev });
+			return [...prev, newNode];
+		});
+	}, []);
+
+	return { add };
 }

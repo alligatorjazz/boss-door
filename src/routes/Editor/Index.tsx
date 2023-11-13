@@ -6,7 +6,7 @@ export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [mode] = useState<EditMode>("move");
 
-	const { createNode } = useEdit({
+	const { add } = useEdit({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -18,8 +18,8 @@ export function Editor() {
 	});
 
 	useEffect(() => {
-		createNode("entrance");
-	}, [createNode]);
+		add({ type: "entrance", name: "Test" });
+	}, [add]);
 
 	return (
 		<div className="w-[100dvw] h-[100dvh] overflow-hidden" ref={containerRef}></div>
