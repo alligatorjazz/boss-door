@@ -10,7 +10,8 @@ export function BarrierObject(node: MapNodes<"barrier">) {
 		shape: "square",
 		fontSize: 40,
 		bgOffset: 0.03,
-		iconText: node.displayName
+		iconText: node.displayName,
+		id: node.id,
 	});
 
 	return obj;

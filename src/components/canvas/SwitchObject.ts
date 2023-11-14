@@ -9,7 +9,8 @@ export function SwitchObject(node: MapNodes<"switch">) {
 		shape: "diamond",
 		fontSize: 40,
 		bgOffset: 0.04,
-		iconText: node.displayName
+		iconText: node.displayName,
+		id: node.id
 	});
 
 	return obj;

@@ -24,6 +24,7 @@ export function TerminalObject(node: MapNodes<"entrance"> | MapNodes<"objective"
 		fgColor: "white",
 		width: standardNodeWidth,
 		shape: "circle",
+		id: node.id,
 		...getDisplay()
 	});
 

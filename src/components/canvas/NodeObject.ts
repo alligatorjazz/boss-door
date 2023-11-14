@@ -12,10 +12,11 @@ export type NodeObjectProps = {
 	bgOffset?: number;
 	sizeOffset?: number;
 	shape: NodeObjectShape;
+	id: string;
 } & ({ icon: NodeObjectIcon } | { iconText: string, fontSize?: number })
 
 export function NodeObject(props: NodeObjectProps) {
-	const { fgColor, bgColor, width, shape } = props;
+	const { fgColor, bgColor, width, shape, id } = props;
 	const height = props.height ?? width;
 
 	const container = new Container();
@@ -96,5 +97,6 @@ export function NodeObject(props: NodeObjectProps) {
 		container.addChild(props.icon);
 	}
 
+	container.name = id;
 	return container;
 }
