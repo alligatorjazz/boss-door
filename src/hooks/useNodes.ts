@@ -1,17 +1,24 @@
 import { Container, DisplayObject } from "pixi.js";
 import { useCallback, useEffect, useState } from "react";
-import { MapNode, MapNodes, createNode } from "../lib/nodes";
-import { TerminalObject } from "../components/canvas/TerminalObject";
-import { SwitchObject } from "../components/canvas/SwitchObject";
 import { BarrierObject } from "../components/canvas/BarrierObject";
+import { SwitchObject } from "../components/canvas/SwitchObject";
+import { TerminalObject } from "../components/canvas/TerminalObject";
+import { MapNode, MapNodes, createNode } from "../lib/nodes";
+
+type AddOptions<T extends MapNode["type"]> = {
+	name: string,
+	initialState?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
+	{ [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
+}
+
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
-	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> }>({});
+	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> | null }>({});
 	const [objects, setObjects] = useState<{ [nodeId: string]: DisplayObject }>({});
 
 	// sync nodes with objects
 	useEffect(() => {
-		setObjects(prev => {
+		setObjects(prevObjects => {
 			const newObjects: typeof objects = {};
 			for (const node of nodes) {
 				let obj: DisplayObject;
@@ -33,15 +40,25 @@ export function useNodes(world?: Container | null) {
 						break;
 					}
 				}
+
+				// load initial state if it exists
+				if (initialStates[node.id]) {
+					obj = { ...obj, ...initialStates[node.id] } as DisplayObject;
+					// delete initial state once used
+					setInitialStates(prevStates => ({ ...prevStates, [node.id]: null }));
+				}
+
+				// TODO: test initial state loading
+				newObjects[node.id] = obj;
 			}
 
-			for (const nodeId in prev) {
-				prev[nodeId].destroy();
+			for (const nodeId in prevObjects) {
+				prevObjects[nodeId].destroy();
 			}
 
 			return newObjects;
 		});
-	}, [nodes]);
+	}, [initialStates, nodes]);
 
 	// sync objects with world 
 	useEffect(() => {
@@ -54,15 +71,14 @@ export function useNodes(world?: Container | null) {
 		}
 	}, [objects, world]);
 
-	type AddOptions<T extends MapNode["type"]> = {
-		name: string,
-		initialState?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
-	}
-	
-	const add = useCallback(<T extends MapNode["type"]>({ name, initialState }: AddOptions<T>) => {
-		setNodes(prev => {
-			const newNode = createNode({ ...options, matchAgainst: prev });
-			return [...prev, newNode];
+	const add = useCallback(<T extends MapNode["type"]>(type: MapNode["type"], { name, initialState }: AddOptions<T>) => {
+		setNodes(prevNodes => {
+			const newNode = createNode({ type, name, matchAgainst: prevNodes });
+			if (initialState) {
+				setInitialStates(prevStates => ({ ...prevStates, [newNode.id]: initialState }));
+			}
+
+			return [...prevNodes, newNode];
 		});
 	}, []);
 

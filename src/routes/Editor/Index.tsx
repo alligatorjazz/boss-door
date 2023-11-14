@@ -18,7 +18,7 @@ export function Editor() {
 	});
 
 	useEffect(() => {
-		add({ type: "entrance", name: "Test" });
+		add("entrance", { name: "Test" });
 	}, [add]);
 
 	return (

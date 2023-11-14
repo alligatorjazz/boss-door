@@ -2,9 +2,6 @@ import { DisplayObject } from "pixi.js";
 import { AnyZodObject, ZodEnum, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
 import { randomColor, toTitleCase } from ".";
 
-const DisplayObjectReferenceSchema = z.string()
-	.refine(key => key in DisplayObject)
-	.transform(key => key as keyof DisplayObject);
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | { [key: string]: Json } | Json[];
@@ -184,4 +181,4 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 	}
 }
 
-type X = MapNodes<"barrier">["state"]["derived"]
+export type X = NonNullable<MapNodes<"barrier">["state"]["derived"]>
