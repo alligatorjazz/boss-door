@@ -1,5 +1,5 @@
 import { Container, DisplayObject } from "pixi.js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
@@ -11,6 +11,7 @@ type AddOptions<T extends MapNode["type"]> = {
 	{ [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
 }
 
+type NodeHandle = { node: MapNode, obj: DisplayObject | null };
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
 	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> | null }>({});
@@ -82,5 +83,20 @@ export function useNodes(world?: Container | null) {
 		});
 	}, []);
 
-	return { add };
+	const map = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => unknown) => {
+		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+			.map(cb);
+	}, [nodes, objects]);
+
+	const filter = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
+		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+			.filter(cb);
+	}, [nodes, objects]);
+
+	const find = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
+		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+			.find(cb);
+	}, [nodes, objects]);
+
+	return { add, objects, list: nodes, map, filter, find };
 }

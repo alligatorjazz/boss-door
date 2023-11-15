@@ -3,26 +3,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ViewHook } from "../types";
 import { useCanvas } from "./useCanvas";
 import { useNodes } from "./useNodes";
+import { pointInBoundingBox } from "../lib";
 
 const selectColor = "#0253f5";
 export type EditMode = "move" | "build";
 export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> = ({ mode, ...options }) => {
-	const { app, viewport, world } = useCanvas(options);
-	const { add } = useNodes(world);
-
+	const { viewport, world } = useCanvas(options);
+	const nodes = useNodes(world);
+	// TODO: test node handles with list
 	// manages selecting nodes
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 
-	useEffect(() => {
-		if (selectOrigin) {
-			console.log(`origin: ${selectOrigin}`);
-		}
-	}, [selectOrigin, selectTerminus]);
-
 	// event handlers for cursors and select
 	const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
-		console.log(e, world?.cursor);
 		if (world) {
 			switch (mode) {
 				case "move":
@@ -63,7 +57,6 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 				case "move":
 				case "build": {
 					if (selectOrigin) {
-						console.log("moving...", selectRect.x, selectRect.y);
 						const pointer = e.getLocalPosition(world);
 						selectRect.clear();
 						selectRect
@@ -86,23 +79,43 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 			switch (mode) {
 				case "move":
 				case "build": {
-					console.log("pointer up");
-					// const resetting origin
-					world.cursor = "default";
-					setSelectOrigin(null);
+					setSelectTerminus(e.getLocalPosition(world) as Point);
 					break;
 				}
 			}
 		}
 	}, [mode, world]);
 
+
+	useEffect(() => {
+		// console.log("origin, terminus: ", selectOrigin, sexlectTerminus);
+		if (selectOrigin && selectTerminus && world) {
+			nodes.map(({ node, obj }) => {
+				if (obj) {
+					console.log("select dimensions: ", selectRect.width, selectRect.height);
+					if (selectRect.containsPoint(obj.getGlobalPosition())) {
+						console.log("selected: ", obj.name);
+					} else {
+						console.log("not selected: ", obj.name, obj.position);
+					}
+				} else {
+					console.warn("obj does not exist");
+				}
+			});
+
+			console.log(nodes.map(data => data));
+			setSelectOrigin(null);
+			setSelectTerminus(null);
+		} else {
+			selectRect.clear();
+		}
+	}, [nodes, selectOrigin, selectRect, selectTerminus, world]);
+
 	useEffect(() => {
 		if (world) {
 			world.on("pointerdown", handlePointerDown);
 			world.on("pointermove", handlePointerMove);
 			world.on("pointerup", handlePointerUp);
-
-			console.log(world.children);
 		}
 		return () => { world?.removeAllListeners(); };
 	}, [handlePointerDown, handlePointerMove, handlePointerUp, world]);
@@ -124,5 +137,5 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 		}
 	}, [mode, viewport, world]);
 
-	return { add };
+	return nodes;
 };

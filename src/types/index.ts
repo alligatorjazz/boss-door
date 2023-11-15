@@ -25,3 +25,5 @@ export type DrawCallback = (handles: {
 type ViewOptions<T extends object> = CanvasOptions & T;
 type ViewHandles<T extends object> = Readonly<T>;
 export type ViewHook<T extends object = object, K extends object = object> = (options: ViewOptions<T>) => ViewHandles<K>;
+export type ArrayElement<ArrayType extends readonly unknown[]> =
+	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;

@@ -1,6 +1,8 @@
 import { DisplayObject } from "pixi.js";
 import { AnyZodObject, ZodEnum, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
 import { randomColor, toTitleCase } from ".";
+import { ArrayElement } from "../types";
+import { Dispatch, SetStateAction } from "react";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
@@ -47,7 +49,7 @@ const defineMapNode = <
 	});
 };
 
-// type f = ReturnType<typeof defineMapNode<"barrier", ZodObject<{ test: ZodString }>>>;
+
 
 const EntranceNodeSchema = defineMapNode(z.literal("entrance"), {
 	derived: defaultDerive,
@@ -89,6 +91,17 @@ export type MapNodes<T extends MapNodeType> =
 	T extends "switch" ? z.infer<typeof SwitchNodeSchema> :
 	T extends "barrier" ? z.infer<typeof BarrierNodeSchema> :
 	never
+
+
+export type ValidNodeKey<T extends MapNodeType> =
+	ArrayElement<NonNullable<MapNodes<T>["state"]["derived"]>> | keyof MapNodes<T>["state"]["internal"];
+
+export type ValidNodeValue<T extends MapNodeType, K extends ValidNodeKey<T>> =
+	K extends ArrayElement<NonNullable<MapNodes<T>["state"]["derived"]>> ?
+	DisplayObject[K] :
+	K extends keyof MapNodes<T>["state"]["internal"] ?
+	MapNodes<T>["state"]["internal"][K] :
+	never;
 
 
 type CreateNodeOptions<T extends MapNodeType> = {
@@ -180,5 +193,3 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 		}
 	}
 }
-
-export type X = NonNullable<MapNodes<"barrier">["state"]["derived"]>
