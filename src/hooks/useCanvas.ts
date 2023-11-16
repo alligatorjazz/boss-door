@@ -10,6 +10,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 	const [world, setWorld] = useState<Container | null>();
 
 	const init = useCallback(() => {
+		console.count("initializing app...");
 		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
 		const app = new Application(appOptions);
 		const viewport = new ExtendedViewport({
@@ -66,6 +67,11 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 				viewport.resize(app.view.width, app.view.height);
 			});
 		}
+
+		return () => {
+			console.count("app destroying...");
+			app?.destroy();
+		};
 	}, [app, viewport]);
 
 

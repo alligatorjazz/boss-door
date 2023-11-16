@@ -1,4 +1,4 @@
-import { FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
+import { FederatedPointerEvent, Graphics, Point } from "pixi.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NodeHandle } from "../lib/nodes";
 import { ViewHook } from "../types";
@@ -7,9 +7,15 @@ import { useNodes } from "./useNodes";
 
 const selectColor = "#0253f5";
 export type EditMode = "move" | "build";
-export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes> & { selected: NodeHandle[] }> = ({ mode, ...options }) => {
+export const useEdit: ViewHook<{ mode: EditMode }, {
+	build: (cb: (actions: {
+		add: ReturnType<typeof useNodes>["add"]
+		remove: ReturnType<typeof useNodes>["remove"]
+	}) => void) => void,
+	selected: NodeHandle[]
+} & Omit<ReturnType<typeof useNodes>, "add" | "remove">> = ({ mode, ...options }) => {
 	const { viewport, world } = useCanvas(options);
-	const nodes = useNodes(world);
+	const { add, remove, ...nodes } = useNodes(world);
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [selected, setSelected] = useState<NodeHandle[]>([]);
@@ -158,5 +164,24 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes> &
 		}
 	}, [mode, viewport, world]);
 
-	return { ...nodes, selected };
+	// build loop - queues and executes actions one-by-one
+	type BuildActions = { add: typeof add, remove: typeof remove };
+	const [buildAction, setBuildAction] = useState<((actions: BuildActions) => void) | null>(null);
+	const build = useCallback((cb: (actions: BuildActions) => void) => {
+		if (world) {
+			setBuildAction(() => cb);
+		}
+	}, [world]);
+
+	useEffect(() => {
+		if (buildAction) {
+			console.log("running build action...");
+			setBuildAction(() => {
+				buildAction({ add, remove });
+				return null;
+			});
+		}
+	}, [add, buildAction, remove]);
+
+	return { build, selected, ...nodes };
 };

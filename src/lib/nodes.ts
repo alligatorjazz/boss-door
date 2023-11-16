@@ -2,7 +2,6 @@ import { DisplayObject } from "pixi.js";
 import { AnyZodObject, ZodEnum, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
 import { randomColor, toTitleCase } from ".";
 import { ArrayElement } from "../types";
-import { Dispatch, SetStateAction } from "react";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
@@ -103,16 +102,15 @@ export type ValidNodeValue<T extends MapNodeType, K extends ValidNodeKey<T>> =
 	MapNodes<T>["state"]["internal"][K] :
 	never;
 
-export type NodeHandle = { node: MapNode, obj: DisplayObject | null };
+export type NodeHandle = { node: MapNode, obj: DisplayObject };
 
 type CreateNodeOptions<T extends MapNodeType> = {
 	type: T,
-	name?: string,
-	matchAgainst: MapNode[]
+	name?: string
 }
 
-export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: CreateNodeOptions<T>): MapNodes<T> {
-	console.log("createNode: beginning node creation: ", type, name);
+export function createNode<T extends MapNodeType>({ type, name }: CreateNodeOptions<T>): MapNodes<T> {
+	// console.log("createNode: beginning node creation: ", type, name);
 	const displayName = name ?? toTitleCase(type);
 	const id = crypto.randomUUID();
 
@@ -142,6 +140,40 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 			return node as MapNodes<T>;
 		}
 		case "switch": {
+			const node: MapNodes<"switch"> = {
+				type,
+				displayName,
+				id,
+				state: {
+					derived: ["position"],
+					internal: { color: "gray" }
+				}
+			};
+
+			return node as MapNodes<T>;
+		}
+		case "barrier": {
+			const node: MapNodes<"barrier"> = {
+				type,
+				displayName,
+				id,
+				state: {
+					derived: ["position"],
+					internal: { color: "gray" }
+				}
+			};
+			return node as MapNodes<T>;
+		}
+		default: {
+			throw new Error("Invalid node type: " + type);
+		}
+	}
+}
+
+type MatchableNode = MapNodes<"barrier"> | MapNodes<"switch">
+export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: MatchableNode[]): T {
+	switch (node.type) {
+		case "switch": {
 			// attempt to find an existing barrier with no switch attached
 			const autoMatch = matchAgainst?.find(value => {
 				if (value.type === "barrier") {
@@ -157,20 +189,17 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 				}
 			}) as MapNodes<"barrier"> | null;
 
-			// const color = autoMatch?.color ?? randomColor();
-			const node: MapNodes<"switch"> = {
-				type,
-				displayName,
-				id,
+			return {
+				...node,
 				state: {
+					...node.state,
 					internal: {
+						...node.state.internal,
 						barrierId: autoMatch?.id,
 						color: autoMatch?.state.internal?.color ?? randomColor()
 					}
 				}
-			};
-
-			return node as MapNodes<T>;
+			} as T;
 		}
 		case "barrier": {
 			// attempt to find an existing key with no lock attached
@@ -180,18 +209,16 @@ export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: 
 				}
 			}) as MapNodes<"switch"> | null;
 
-			const node: MapNodes<"barrier"> = {
-				type,
-				displayName: autoMatch?.displayName ?? String.fromCharCode(97 + matchAgainst.length - 1),
-				id,
+			return {
+				...node,
 				state: {
-					internal: { color: autoMatch?.state.internal?.color ?? randomColor() }
+					...node.state,
+					internal: {
+						...node.state.internal,
+						color: autoMatch?.state.internal?.color ?? randomColor()
+					}
 				}
-			};
-			return node as MapNodes<T>;
-		}
-		default: {
-			throw new Error("Invalid node type: " + type);
+			} as T;
 		}
 	}
 }

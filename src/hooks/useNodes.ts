@@ -1,88 +1,80 @@
 import { Container, DisplayObject } from "pixi.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
 import { MapNode, MapNodes, NodeHandle, createNode } from "../lib/nodes";
 
-type AddOptions<T extends MapNode["type"]> = {
+type AddOptions = {
 	name: string,
-	initialState?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
-	{ [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
+	// state?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
+	// { [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
 }
 
 type RemoveOptions = { id: string };
 
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
-	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> | null }>({});
-	const [objects, setObjects] = useState<{ [nodeId: string]: DisplayObject }>({});
+	const [objects, setObjects] = useState<DisplayObject[]>([]);
+	const createNodeObject = useCallback((node: MapNode): DisplayObject => {
+		let obj: DisplayObject;
+		switch (node.type) {
+			case "entrance": {
+				obj = TerminalObject(node);
+				break;
+			}
+			case "objective": {
+				obj = TerminalObject(node);
+				break;
+			}
+			case "switch": {
+				obj = SwitchObject(node);
+				break;
+			}
+			case "barrier": {
+				obj = BarrierObject(node);
+				break;
+			}
+		}
+
+		return obj;
+	}, []);
 
 	// sync nodes with objects
 	useEffect(() => {
-		setObjects(prevObjects => {
-			const newObjects: typeof objects = {};
+		setObjects(prev => {
+			const newObjects: DisplayObject[] = [];
 			for (const node of nodes) {
-				let obj: DisplayObject;
-				switch (node.type) {
-					case "entrance": {
-						obj = TerminalObject(node);
-						break;
-					}
-					case "objective": {
-						obj = TerminalObject(node);
-						break;
-					}
-					case "switch": {
-						obj = SwitchObject(node);
-						break;
-					}
-					case "barrier": {
-						obj = BarrierObject(node);
-						break;
-					}
+				const oldObject = prev.find(obj => obj.name === node.id);
+				if (oldObject) {
+					newObjects.push(oldObject);
+					continue;
 				}
 
-				// load initial state if it exists
-				if (initialStates[node.id]) {
-					obj = { ...obj, ...initialStates[node.id] } as DisplayObject;
-					// delete initial state once used
-					setInitialStates(prevStates => ({ ...prevStates, [node.id]: null }));
-				}
-
-				newObjects[node.id] = obj;
+				const obj = createNodeObject(node);
+				newObjects.push(obj);
 			}
 
-			for (const nodeId in prevObjects) {
-				prevObjects[nodeId].destroy();
+			// delete objects that correspond to non-extant nodes
+			for (const obj of prev.filter(obj => !newObjects.includes(obj))) {
+				obj.destroy();
 			}
 
 			return newObjects;
 		});
-	}, [initialStates, nodes]);
+
+	}, [createNodeObject, nodes]);
 
 	// sync objects with world 
 	useEffect(() => {
 		if (world) {
-			for (const obj of Object.values(objects)) {
+			for (const obj of objects) {
 				if (!world.children.includes(obj)) {
 					world.addChild(obj);
 				}
 			}
 		}
 	}, [objects, world]);
-	
-	const add = useCallback(<T extends MapNode["type"]>(type: MapNode["type"], { name, initialState }: AddOptions<T>) => {
-		setNodes(prevNodes => {
-
-			const newNode = createNode({ type, name, matchAgainst: prevNodes, });
-			if (initialState) {
-				setInitialStates(prevStates => ({ ...prevStates, [newNode.id]: initialState }));
-			}
-
-			return [...prevNodes, newNode];
-		});
-	}, []);
 
 	const remove = useCallback(({ id }: RemoveOptions) => {
 		setNodes(prevNodes => {
@@ -93,28 +85,40 @@ export function useNodes(world?: Container | null) {
 	const removeAll = useCallback(() => {
 		console.count("remove all called");
 		setNodes(() => {
-			setObjects(prev => {
-				Object.values(prev).map(obj => obj.destroy());
-				return {};
+			setObjects(prev => { 
+				prev.map(prevObj => prevObj.destroy());
+				return [];
 			});
 			return [];
 		});
 	}, []);
 
 	const map = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => unknown) => {
-		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
 			.map(cb);
 	}, [nodes, objects]);
 
 	const filter = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
-		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
 			.filter(cb);
 	}, [nodes, objects]);
 
 	const find = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
-		return (nodes.map(node => ({ node, obj: node.id in objects ? objects[node.id] : null })) as NodeHandle[])
+		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
 			.find(cb);
 	}, [nodes, objects]);
 
-	return { add, remove, removeAll, objects, list: nodes, map, filter, find };
+	const add = useCallback(<T extends MapNode["type"]>(type: T, options: AddOptions) => {
+		const node = createNode({ type, ...options }) as MapNodes<T>;
+		setNodes(prevNodes => [...prevNodes, node]);
+		return {
+			node, get obj() {
+				const obj = createNodeObject(node);
+				setObjects(prev => prev.filter(prevObj => prevObj.name === obj.name).concat(obj));
+				return obj;
+			}
+		} as NodeHandle;
+	}, [createNodeObject]);
+
+	return { add, remove, removeAll, list: nodes, map, filter, find };
 }

@@ -7,7 +7,7 @@ export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [mode] = useState<EditMode>("move");
 
-	const { add, removeAll, selected } = useEdit({
+	const { build, selected } = useEdit({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -19,9 +19,12 @@ export function Editor() {
 	});
 
 	useEffect(() => {
-		add("entrance", { name: "Test" });
-		return removeAll;
-	}, [add, removeAll]);
+		build(({ add }) => {
+			const e = add("entrance", { name: "Entrance" });
+			const b = add("barrier", { name: "B" });
+			b.obj.position.set(300, 0);
+		});
+	}, [build]);
 
 	return (
 		<div className="w-[100dvw] h-[100dvh] overflow-hidden">
@@ -34,6 +37,9 @@ export function Editor() {
 						<li key={node.id}>{node.displayName} ({parsePoint(obj?.position) ?? "N/A"})</li>
 					))}
 				</ul>
+				<button className="p-4 bg-slate-400" onClick={() => console.log(map(({ node, obj }) => {
+					return `node: ${node.displayName}, pos: ${obj?.position}`;
+				}))}>Log Object Positions</button>
 			</section>
 		</div>
 	);
