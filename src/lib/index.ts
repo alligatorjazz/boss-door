@@ -51,3 +51,8 @@ export function pointInBoundingBox(point: Point, box: [Point, Point, Point, Poin
 
 	return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
 }
+
+export function parsePoint(pt?: Point): string {
+	if (!pt) { return "invalid"; }
+	return `(${pt.x}, ${pt.y})`;
+}

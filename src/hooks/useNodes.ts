@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
-import { MapNode, MapNodes, createNode } from "../lib/nodes";
+import { MapNode, MapNodes, NodeHandle, createNode } from "../lib/nodes";
 
 type AddOptions<T extends MapNode["type"]> = {
 	name: string,
@@ -11,7 +11,8 @@ type AddOptions<T extends MapNode["type"]> = {
 	{ [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
 }
 
-type NodeHandle = { node: MapNode, obj: DisplayObject | null };
+type RemoveOptions = { id: string };
+
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
 	const [initialStates, setInitialStates] = useState<{ [nodeId: string]: Partial<DisplayObject> | null }>({});
@@ -49,7 +50,6 @@ export function useNodes(world?: Container | null) {
 					setInitialStates(prevStates => ({ ...prevStates, [node.id]: null }));
 				}
 
-				// TODO: test initial state loading
 				newObjects[node.id] = obj;
 			}
 
@@ -71,15 +71,33 @@ export function useNodes(world?: Container | null) {
 			}
 		}
 	}, [objects, world]);
-
+	
 	const add = useCallback(<T extends MapNode["type"]>(type: MapNode["type"], { name, initialState }: AddOptions<T>) => {
 		setNodes(prevNodes => {
-			const newNode = createNode({ type, name, matchAgainst: prevNodes });
+
+			const newNode = createNode({ type, name, matchAgainst: prevNodes, });
 			if (initialState) {
 				setInitialStates(prevStates => ({ ...prevStates, [newNode.id]: initialState }));
 			}
 
 			return [...prevNodes, newNode];
+		});
+	}, []);
+
+	const remove = useCallback(({ id }: RemoveOptions) => {
+		setNodes(prevNodes => {
+			return prevNodes.filter(node => node.id !== id);
+		});
+	}, []);
+
+	const removeAll = useCallback(() => {
+		console.count("remove all called");
+		setNodes(() => {
+			setObjects(prev => {
+				Object.values(prev).map(obj => obj.destroy());
+				return {};
+			});
+			return [];
 		});
 	}, []);
 
@@ -98,5 +116,5 @@ export function useNodes(world?: Container | null) {
 			.find(cb);
 	}, [nodes, objects]);
 
-	return { add, objects, list: nodes, map, filter, find };
+	return { add, remove, removeAll, objects, list: nodes, map, filter, find };
 }

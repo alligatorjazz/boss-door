@@ -1,19 +1,18 @@
-import { FederatedPointerEvent, Graphics, Point } from "pixi.js";
+import { FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { NodeHandle } from "../lib/nodes";
 import { ViewHook } from "../types";
 import { useCanvas } from "./useCanvas";
 import { useNodes } from "./useNodes";
-import { pointInBoundingBox } from "../lib";
 
 const selectColor = "#0253f5";
 export type EditMode = "move" | "build";
-export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> = ({ mode, ...options }) => {
+export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes> & { selected: NodeHandle[] }> = ({ mode, ...options }) => {
 	const { viewport, world } = useCanvas(options);
 	const nodes = useNodes(world);
-	// TODO: test node handles with list
-	// manages selecting nodes
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
+	const [selected, setSelected] = useState<NodeHandle[]>([]);
 
 	// event handlers for cursors and select
 	const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -34,22 +33,22 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 
 	}, [mode, world]);
 
-	const selectRect = useMemo(() => {
+	const selectorRect = useMemo(() => {
 		const prev = world?.children
-			.find(child => child.name === "selectRect" && child instanceof Graphics) as Graphics | undefined;
+			.find(child => child.name === "selectorRect" && child instanceof Graphics) as Graphics | undefined;
 		const graphics = prev ?? new Graphics();
 		// graphics.position.copyFrom(selectOrigin ?? new Point(0, 0));
-		graphics.name = "selectRect";
+		graphics.name = "selectorRect";
 		graphics.zIndex = 100;
 		if (!prev) { world?.addChild(graphics); }
 		return graphics;
 	}, [world]);
 
 	useEffect(() => {
-		if (world && !world.children.includes(selectRect)) {
-			world.addChild(selectRect);
+		if (world && !world.children.includes(selectorRect)) {
+			world.addChild(selectorRect);
 		}
-	}, [selectRect, world]);
+	}, [selectorRect, world]);
 
 	const handlePointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world) {
@@ -58,8 +57,8 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 				case "build": {
 					if (selectOrigin) {
 						const pointer = e.getLocalPosition(world);
-						selectRect.clear();
-						selectRect
+						selectorRect.clear();
+						selectorRect
 							.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
 							.beginFill(selectColor, 0.5)
 							.moveTo(selectOrigin.x, selectOrigin.y)
@@ -72,7 +71,7 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 				}
 			}
 		}
-	}, [mode, selectOrigin, selectRect, world]);
+	}, [mode, selectOrigin, selectorRect, world]);
 
 	const handlePointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world) {
@@ -86,36 +85,58 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 		}
 	}, [mode, world]);
 
-
+	// "closes" selection, adding objects under the selectorRect to the list of
+	// selected nodes
 	useEffect(() => {
-		// console.log("origin, terminus: ", selectOrigin, sexlectTerminus);
 		if (selectOrigin && selectTerminus && world) {
 			nodes.map(({ node, obj }) => {
-				if (obj) {
-					console.log("select dimensions: ", selectRect.width, selectRect.height);
-					if (selectRect.containsPoint(obj.getGlobalPosition())) {
-						console.log("selected: ", obj.name);
-					} else {
-						console.log("not selected: ", obj.name, obj.position);
-					}
-				} else {
-					console.warn("obj does not exist");
+				if (obj && selectorRect.containsPoint(obj.getGlobalPosition())) {
+					setSelected(prev => {
+						const isAlreadySelected = !!prev.find(({ node: prevSelection }) => prevSelection.id === node.id);
+						if (isAlreadySelected) { return prev; }
+						return [...prev, { node, obj }];
+					});
 				}
 			});
 
-			console.log(nodes.map(data => data));
+			console.log("selected: ", selected);
 			setSelectOrigin(null);
 			setSelectTerminus(null);
 		} else {
-			selectRect.clear();
+			selectorRect.clear();
 		}
-	}, [nodes, selectOrigin, selectRect, selectTerminus, world]);
+	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selected]);
+
+	const selectedRect = useMemo(() => {
+		const prev = world?.children
+			.find(child => child.name === "selectedRect" && child instanceof Graphics) as Graphics | undefined;
+		const graphics = prev ?? new Graphics();
+		graphics.name = "selectedRect";
+		graphics.zIndex = 100;
+		if (!prev) { world?.addChild(graphics); }
+		return graphics;
+	}, [world]);
+
+	useEffect(() => {
+		// TODO: replace with optimized bounds function (see: https://pixijs.download/dev/docs/PIXI.Graphics.html#getBounds)
+		selectedRect.clear();
+		nodes.map(({ node, obj }) => {
+			if (obj && selected.includes({ node, obj })) {
+				const bounds = obj.getBounds();
+				selectedRect
+					.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
+					.beginFill(selectColor, 0.5)
+					.drawRect(bounds.left, bounds.top, bounds.width, bounds.height);
+			}
+		});
+	}, [nodes, selected, selectedRect]);
 
 	useEffect(() => {
 		if (world) {
 			world.on("pointerdown", handlePointerDown);
 			world.on("pointermove", handlePointerMove);
 			world.on("pointerup", handlePointerUp);
+			world.on("pointerupoutside", handlePointerUp);
 		}
 		return () => { world?.removeAllListeners(); };
 	}, [handlePointerDown, handlePointerMove, handlePointerUp, world]);
@@ -137,5 +158,5 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes>> 
 		}
 	}, [mode, viewport, world]);
 
-	return nodes;
+	return { ...nodes, selected };
 };

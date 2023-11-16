@@ -103,12 +103,14 @@ export type ValidNodeValue<T extends MapNodeType, K extends ValidNodeKey<T>> =
 	MapNodes<T>["state"]["internal"][K] :
 	never;
 
+export type NodeHandle = { node: MapNode, obj: DisplayObject | null };
 
 type CreateNodeOptions<T extends MapNodeType> = {
 	type: T,
 	name?: string,
 	matchAgainst: MapNode[]
 }
+
 export function createNode<T extends MapNodeType>({ type, name, matchAgainst }: CreateNodeOptions<T>): MapNodes<T> {
 	console.log("createNode: beginning node creation: ", type, name);
 	const displayName = name ?? toTitleCase(type);
