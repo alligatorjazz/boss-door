@@ -20,9 +20,10 @@ export function Editor() {
 
 	useEffect(() => {
 		build(({ add }) => {
-			const e = add("entrance", { name: "Entrance" });
+			// const e = add("entrance", { name: "Entrance" });
+			// e.obj.position.set(-3500, 0);
 			const b = add("barrier", { name: "B" });
-			b.obj.position.set(300, 0);
+			b.obj.position.set(150, 0);
 		});
 	}, [build]);
 
@@ -37,9 +38,6 @@ export function Editor() {
 						<li key={node.id}>{node.displayName} ({parsePoint(obj?.position) ?? "N/A"})</li>
 					))}
 				</ul>
-				<button className="p-4 bg-slate-400" onClick={() => console.log(map(({ node, obj }) => {
-					return `node: ${node.displayName}, pos: ${obj?.position}`;
-				}))}>Log Object Positions</button>
 			</section>
 		</div>
 	);

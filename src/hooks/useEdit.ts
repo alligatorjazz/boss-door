@@ -97,27 +97,22 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 		}
 	}, [mode, selectOrigin, world]);
 
-	// "closes" selection, adding objects under the selectorRect to the list of
-	// selected nodes
+	// "closes" selection, adding objects under the selectorRect to the list of selected nodes
 	useEffect(() => {
 		if (selectOrigin && selectTerminus && world) {
-			nodes.map(({ node, obj }) => {
-				if (obj && selectorRect.containsPoint(obj.getGlobalPosition())) {
-					setSelected(prev => {
-						const isAlreadySelected = !!prev.find(({ node: prevSelection }) => prevSelection.id === node.id);
-						if (isAlreadySelected) { return prev; }
-						return [...prev, { node, obj }];
-					});
-				}
-			});
+			const filteredNodes = nodes
+				.filter(({ obj }) => obj && selectorRect.containsPoint(obj.getGlobalPosition()));
 
-			console.log("selected: ", selected);
-			setSelectOrigin(null);
-			setSelectTerminus(null);
+			setSelected(() => {
+				// TODO: add support for alt-select
+				setSelectOrigin(null);
+				setSelectTerminus(null);
+				return filteredNodes;
+			});
 		} else {
 			selectorRect.clear();
 		}
-	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selected]);
+	}, [nodes, selectOrigin, selectorRect, selectTerminus, world]);
 
 	const selectedRect = useMemo(() => {
 		const prev = world?.children
@@ -132,14 +127,16 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	useEffect(() => {
 		// TODO: replace with optimized bounds function (see: https://pixijs.download/dev/docs/PIXI.Graphics.html#getBounds)
 		selectedRect.clear();
-		nodes.map(({ node, obj }) => {
-			if (obj && selected.map(({ node }) => node.id).includes(node.id)) {
-				const bounds = obj.getLocalBounds();
-				selectedRect
-					.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
-					// .beginFill(selectColor, 0.5)
-					.drawRect(bounds.left - obj.pivot.x, bounds.top - obj.pivot.y, bounds.width, bounds.height);
-			}
+		selected.map(({ obj }) => {
+			const bounds = obj.getLocalBounds();
+			selectedRect
+				.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
+				.drawRect(
+					bounds.left - obj.pivot.x + obj.position.x, 
+					bounds.top - obj.pivot.y + obj.position.y, 
+					bounds.width, 
+					bounds.height
+				);
 		});
 	}, [nodes, selected, selectedRect]);
 
