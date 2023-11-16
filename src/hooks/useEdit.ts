@@ -121,12 +121,12 @@ export const useEdit: ViewHook<{ mode: EditMode }, ReturnType<typeof useNodes> &
 		// TODO: replace with optimized bounds function (see: https://pixijs.download/dev/docs/PIXI.Graphics.html#getBounds)
 		selectedRect.clear();
 		nodes.map(({ node, obj }) => {
-			if (obj && selected.includes({ node, obj })) {
-				const bounds = obj.getBounds();
+			if (obj && selected.map(({ node }) => node.id).includes(node.id)) {
+				const bounds = obj.getLocalBounds();
 				selectedRect
 					.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
-					.beginFill(selectColor, 0.5)
-					.drawRect(bounds.left, bounds.top, bounds.width, bounds.height);
+					// .beginFill(selectColor, 0.5)
+					.drawRect(bounds.left - obj.pivot.x, bounds.top - obj.pivot.y, bounds.width, bounds.height);
 			}
 		});
 	}, [nodes, selected, selectedRect]);
