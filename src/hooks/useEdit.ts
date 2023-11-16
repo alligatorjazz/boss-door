@@ -84,12 +84,18 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 			switch (mode) {
 				case "move":
 				case "build": {
-					setSelectTerminus(e.getLocalPosition(world) as Point);
+					if (selectOrigin && e.button === 0) {
+						setSelectTerminus(e.getLocalPosition(world) as Point);
+					}
+
+					if (e.button === 1) {
+						world.cursor = "default";
+					}
 					break;
 				}
 			}
 		}
-	}, [mode, world]);
+	}, [mode, selectOrigin, world]);
 
 	// "closes" selection, adding objects under the selectorRect to the list of
 	// selected nodes
