@@ -1,12 +1,12 @@
 import { FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NodeHandle } from "../lib/nodes";
-import { ViewHook } from "../types";
+import { EditMode, ViewHook } from "../types";
 import { useCanvas } from "./useCanvas";
 import { useNodes } from "./useNodes";
 
 const selectColor = "#0253f5";
-export type EditMode = "move" | "build";
+
 export const useEdit: ViewHook<{ mode: EditMode }, {
 	build: (cb: (actions: {
 		add: ReturnType<typeof useNodes>["add"]
@@ -208,15 +208,12 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 		}
 	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selectedRect]);
 
-
-
-	// draws selected rects
+	// draws selection outlines around selected objects
 	useEffect(() => {
-		if (selected.length > 0) {
-			outlineSelections();
-		}
+		if (selected.length > 0) { outlineSelections(); }
 	}, [nodes, outlineSelections, selected, selectedRect, world]);
 
+	// registers event listeners
 	useEffect(() => {
 		if (world) {
 			world.on("pointerdown", handlePointerDown);
