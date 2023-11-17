@@ -108,7 +108,6 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 							.contains(localMousePosition.x, localMousePosition.y);
 						console.log(`selected contains point: ${beginMovingSelection}`);
 						if (beginMovingSelection) {
-
 							setMoveOrigin(localMousePosition);
 						} else {
 							// begins selection
@@ -205,8 +204,9 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 			});
 		} else {
 			selectorRect.clear();
+			selectedRect.clear();
 		}
-	}, [nodes, selectOrigin, selectorRect, selectTerminus, world]);
+	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selectedRect]);
 
 
 
