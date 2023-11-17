@@ -21,13 +21,8 @@ export function Editor() {
 	useEffect(() => {
 		build(({ add }) => {
 			for (let i = 0; i < 4; i++) {
-				const b = add("barrier", { name: "B" });
-				b.obj.position.set(Math.random() * 1000, Math.random() * 1000);
-			}
-
-			for (let i = 0; i < 4; i++) {
-				const s = add("switch", { name: "B" });
-				s.obj.position.set(Math.random() * 1000, Math.random() * 1000);
+				const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
+				b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
 			}
 		});
 	}, [build]);
