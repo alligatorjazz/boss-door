@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { EditMode, useEdit } from "../../hooks/useEdit";
-import { parsePoint } from "../../lib";
+import { parsePoint, randomColor } from "../../lib";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -20,12 +20,15 @@ export function Editor() {
 
 	useEffect(() => {
 		build(({ add }) => {
-			const e = add("entrance", { name: "Entrance" });
-			e.obj.position.set(-250, 0);
-			const b = add("barrier", { name: "B" });
-			b.obj.position.set(250, 100);
-			const c = add("switch", { name: "S" });
-			c.obj.position.set(80, 50);
+			for (let i = 0; i < 4; i++) {
+				const b = add("barrier", { name: "B" });
+				b.obj.position.set(Math.random() * 1000, Math.random() * 1000);
+			}
+
+			for (let i = 0; i < 4; i++) {
+				const s = add("switch", { name: "B" });
+				s.obj.position.set(Math.random() * 1000, Math.random() * 1000);
+			}
 		});
 	}, [build]);
 	return (

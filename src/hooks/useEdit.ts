@@ -1,4 +1,4 @@
-import { FederatedPointerEvent, Graphics, Point } from "pixi.js";
+import { FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NodeHandle } from "../lib/nodes";
 import { ViewHook } from "../types";
@@ -147,25 +147,54 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 		});
 
 		// draw huge rect around all selections
-		if (selected.length > 1) {
-			let top = 0;
-			let left = 0;
-			let width = 0;
-			let height = 0;
+		if (selected.length > 1 && world) {
+			// laying out corners clockwise starting from top left: A, B, C, D
+			// const [refBounds, refPosition, refPivot] = [
+			// 	selected[0].obj.getLocalBounds(),
+			// 	selected[0].obj.position.clone(),
+			// 	selected[0].obj.pivot.clone()
+			// ];
 
-			selected.map(({ obj }) => {
+			// let top = refBounds.top + refPosition.y - refPivot.y;
+			// let left = refBounds.left + refPosition.x - refPivot.x;
+			// let right = refBounds.right + refPosition.x - refPivot.x;
+			// let bottom = refBounds.bottom + refPosition.y - refPivot.y;
+
+			const ref = {
+				obj: selected[0].obj,
+				bounds: selected[0].obj.getLocalBounds()
+			};
+			const superRect = new Rectangle(
+				ref.bounds.left - ref.obj.pivot.x + ref.obj.position.x,
+				ref.bounds.top - ref.obj.pivot.y + ref.obj.position.y,
+				ref.bounds.width,
+				ref.bounds.height
+			);
+
+			selected.slice(1).map(({ obj }) => {
 				const bounds = obj.getLocalBounds();
-				top = Math.min(bounds.top - obj.pivot.x + obj.position.x, top);
-				left = Math.min(bounds.left - obj.pivot.y + obj.position.y, left);
-				width += bounds.width + obj.position.x - obj.pivot.x;
-				height += bounds.height + obj.position.y - obj.pivot.y;
+
+				const objRect = new Rectangle(
+					bounds.left - obj.pivot.x + obj.position.x,
+					bounds.top - obj.pivot.y + obj.position.y,
+					bounds.width,
+					bounds.height
+				);
+
+				superRect.enlarge(objRect);
+				superRect.x;
 			});
 
 			selectedRect
 				.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
-				.drawRect(top, left, width, height);
+				.drawRect(
+					superRect.x,
+					superRect.y,
+					superRect.width,
+					superRect.height
+				);
 		}
-	}, [nodes, selected, selectedRect]);
+	}, [nodes, selected, selectedRect, world]);
 
 	useEffect(() => {
 		if (world) {
