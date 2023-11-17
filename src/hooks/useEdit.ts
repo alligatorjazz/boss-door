@@ -101,7 +101,14 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	useEffect(() => {
 		if (selectOrigin && selectTerminus && world) {
 			const filteredNodes = nodes
-				.filter(({ obj }) => obj && selectorRect.containsPoint(obj.getGlobalPosition()));
+				.filter(({ obj }) => {
+					const global = obj.getGlobalPosition();
+					const comparePoint = new Point(
+						global.x - obj.pivot.x,
+						global.y - obj.pivot.y
+					);
+					return obj && selectorRect.containsPoint(comparePoint);
+				});
 
 			setSelected(() => {
 				// TODO: add support for alt-select
@@ -132,12 +139,32 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 			selectedRect
 				.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
 				.drawRect(
-					bounds.left - obj.pivot.x + obj.position.x, 
-					bounds.top - obj.pivot.y + obj.position.y, 
-					bounds.width, 
+					bounds.left - obj.pivot.x + obj.position.x,
+					bounds.top - obj.pivot.y + obj.position.y,
+					bounds.width,
 					bounds.height
 				);
 		});
+
+		// draw huge rect around all selections
+		if (selected.length > 1) {
+			let top = 0;
+			let left = 0;
+			let width = 0;
+			let height = 0;
+
+			selected.map(({ obj }) => {
+				const bounds = obj.getLocalBounds();
+				top = Math.min(bounds.top - obj.pivot.x + obj.position.x, top);
+				left = Math.min(bounds.left - obj.pivot.y + obj.position.y, left);
+				width += bounds.width + obj.position.x - obj.pivot.x;
+				height += bounds.height + obj.position.y - obj.pivot.y;
+			});
+
+			selectedRect
+				.lineStyle({ alignment: 0.5, color: selectColor, width: 2 })
+				.drawRect(top, left, width, height);
+		}
 	}, [nodes, selected, selectedRect]);
 
 	useEffect(() => {

@@ -1,5 +1,5 @@
 import { Container, DisplayObject } from "pixi.js";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
@@ -57,6 +57,7 @@ export function useNodes(world?: Container | null) {
 
 			// delete objects that correspond to non-extant nodes
 			for (const obj of prev.filter(obj => !newObjects.includes(obj))) {
+				console.count("destroying object");
 				obj.destroy();
 			}
 
@@ -93,7 +94,7 @@ export function useNodes(world?: Container | null) {
 		});
 	}, []);
 
-	const map = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => unknown) => {
+	const map = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => ReactNode) => {
 		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
 			.map(cb);
 	}, [nodes, objects]);
@@ -114,7 +115,7 @@ export function useNodes(world?: Container | null) {
 		return {
 			node, get obj() {
 				const obj = createNodeObject(node);
-				setObjects(prev => prev.filter(prevObj => prevObj.name === obj.name).concat(obj));
+				setObjects(prev => [...prev, obj]);
 				return obj;
 			}
 		} as NodeHandle;

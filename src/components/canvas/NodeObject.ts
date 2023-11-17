@@ -97,6 +97,13 @@ export function NodeObject(props: NodeObjectProps) {
 		container.addChild(props.icon);
 	}
 
+	// debug dot
+	container.addChild(
+		new Graphics()
+			.beginFill("lightblue")
+			.drawEllipse(0, 0, 10, 10)
+	);
+
 	container.name = id;
 	return container;
 }
