@@ -1,7 +1,8 @@
 
 import { useEffect, useRef, useState } from "react";
-import { EditMode, useEdit } from "../../hooks/useEdit";
-import { parsePoint, randomColor } from "../../lib";
+import { useEdit } from "../../hooks/useEdit";
+import { parsePoint } from "../../lib";
+import { EditMode } from "../../types";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);

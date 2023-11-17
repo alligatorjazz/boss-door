@@ -1,4 +1,4 @@
-import { Container, Graphics, Point, Sprite, Text, TextStyle } from "pixi.js";
+import { Container, Graphics, Sprite, Text, TextStyle } from "pixi.js";
 
 type NodeObjectShape = "circle" | "diamond" | "square";
 
