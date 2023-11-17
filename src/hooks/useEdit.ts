@@ -148,18 +148,6 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 
 		// draw huge rect around all selections
 		if (selected.length > 1 && world) {
-			// laying out corners clockwise starting from top left: A, B, C, D
-			// const [refBounds, refPosition, refPivot] = [
-			// 	selected[0].obj.getLocalBounds(),
-			// 	selected[0].obj.position.clone(),
-			// 	selected[0].obj.pivot.clone()
-			// ];
-
-			// let top = refBounds.top + refPosition.y - refPivot.y;
-			// let left = refBounds.left + refPosition.x - refPivot.x;
-			// let right = refBounds.right + refPosition.x - refPivot.x;
-			// let bottom = refBounds.bottom + refPosition.y - refPivot.y;
-
 			const ref = {
 				obj: selected[0].obj,
 				bounds: selected[0].obj.getLocalBounds()
@@ -225,22 +213,12 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 
 	// build loop - queues and executes actions one-by-one
 	type BuildActions = { add: typeof add, remove: typeof remove };
-	const [buildAction, setBuildAction] = useState<((actions: BuildActions) => void) | null>(null);
 	const build = useCallback((cb: (actions: BuildActions) => void) => {
 		if (world) {
-			setBuildAction(() => cb);
+			cb({ add, remove });
 		}
-	}, [world]);
+	}, [add, remove, world]);
 
-	useEffect(() => {
-		if (buildAction) {
-			console.log("running build action...");
-			setBuildAction(() => {
-				buildAction({ add, remove });
-				return null;
-			});
-		}
-	}, [add, buildAction, remove]);
 
 	return { build, selected, ...nodes };
 };

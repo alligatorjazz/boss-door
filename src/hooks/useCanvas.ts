@@ -1,7 +1,7 @@
 import { Viewport } from "pixi-viewport";
 import { Application, Container, Graphics } from "pixi.js";
 import { useCallback, useEffect, useState } from "react";
-import { ExtendedViewport } from "../components/canvas/ExtendedViewport";
+import { ExtendedViewport } from "../lib/viewport";
 import { CanvasHandles, CanvasOptions } from "../types";
 
 export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles> {
@@ -10,7 +10,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 	const [world, setWorld] = useState<Container | null>();
 
 	const init = useCallback(() => {
-		console.count("initializing app...");
+		// console.count("initializing app...");
 		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
 		const app = new Application(appOptions);
 		const viewport = new ExtendedViewport({
@@ -69,7 +69,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 		}
 
 		return () => {
-			console.count("app destroying...");
+			// console.count("app destroying...");
 			app?.destroy();
 		};
 	}, [app, viewport]);

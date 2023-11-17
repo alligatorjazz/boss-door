@@ -7,7 +7,7 @@ class ExtendedDrag extends Drag {
 		}
 
 		if (this.options.wheel) {
-			console.log("drag plugin: running wheel proc");
+			// console.log("drag plugin: running wheel proc");
 			const wheel = this.parent.plugins.get("wheel", true) as ExtendedWheel;
 
 			if (!wheel || ((!wheel.options.wheelZoom || !wheel.keyIsPressed) && !event.ctrlKey)) {
