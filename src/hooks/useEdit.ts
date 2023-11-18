@@ -14,10 +14,11 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	}) => void) => void,
 	selected: ReadonlyArray<NodeHandle>
 } & Omit<ReturnType<typeof useNodes>, "add" | "remove">> = ({ mode, ...options }) => {
-	const { viewport, world } = useCanvas(options);
+	const { viewport, world, setCursor } = useCanvas(options);
 	const { add, remove, ...nodes } = useNodes(world);
-	const selected = useSelect({ world, nodes, viewport, enabled: mode === "move" });
-	useBuild({world, nodes, enabled: mode === "build"});
+	const selected = useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor });
+	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor });
+	
 	useGrid({ world, cellSize: 32, color: "lightgray", levels: 16, viewport });
 
 	// console.log("viewport scale: ", viewport?.scale.x);

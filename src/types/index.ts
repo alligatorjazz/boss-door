@@ -15,6 +15,7 @@ export type CanvasHandles = {
 	app: Application<ICanvas> | null | undefined;
 	world: Container<DisplayObject> | null | undefined;
 	viewport: Viewport | null | undefined;
+	setCursor: (mode: string) => void;
 };
 
 export type DrawCallback = (handles: {
@@ -29,3 +30,7 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 export type EditMode = "move" | "build";
+
+export type EditModeOptions = {
+	setCursor: (mode: string) => void;
+}

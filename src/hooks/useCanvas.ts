@@ -8,11 +8,16 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 	const [app, setApp] = useState<Application | null>();
 	const [viewport, setViewport] = useState<Viewport | null>();
 	const [world, setWorld] = useState<Container | null>();
+	const [appContainer, setAppContainer] = useState<HTMLElement>();
 
 	const init = useCallback(() => {
 		// console.count("initializing app...");
 		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
 		const app = new Application(appOptions);
+		// app.renderer.events.cursorStyles = {
+		// 	...app.renderer.events.cursorStyles,
+		// 	empty: `url("${empty}"),auto`
+		// };
 
 		const viewport = new ExtendedViewport({
 			screenWidth: app.view.width,
@@ -58,6 +63,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 			container.appendChild(app.view as HTMLCanvasElement);
 			app.resize();
 			app.resizeTo = container;
+			setAppContainer(container);
 		}
 	}, [app, init, options.ref, world]);
 
@@ -70,12 +76,16 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 		}
 
 		return () => {
-			// console.count("app destroying...");
 			app?.destroy();
 		};
 	}, [app, viewport]);
 
+	const setCursor = useCallback((mode: string) => {
+		if (app && appContainer && app.view.parentNode === appContainer) {
+			return appContainer.style.setProperty("cursor", mode);
+		}
+		return () => console.warn("setCursor() called before app initialized.");
+	}, [app, appContainer]);
 
-
-	return { app, world, viewport };
+	return { app, world, viewport, setCursor };
 }

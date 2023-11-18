@@ -3,22 +3,27 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { NodeHandle } from "../lib/nodes";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
+import { EditModeOptions } from "../types";
 
 type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
 	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove">;
-}
+} & EditModeOptions
 
 const selectColor = "#0253f5";
-export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions) {
+export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSelectOptions) {
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [selected, setSelected] = useState<NodeHandle[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
 
-	useEffect(() => { if (enabled && world) { world.cursor = "default"; } }, [enabled, world]);
+	useEffect(() => {
+		if (enabled && world) {
+			setCursor("default");
+		}
+	}, [enabled, setCursor, world]);
 
 	const selectorRect = useMemo(() => {
 		const prev = world?.children
@@ -112,11 +117,11 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 			}
 
 			if (e.button === 1) {
-				world.cursor = "grabbing";
+				setCursor("grabbing");
 			}
 		}
 
-	}, [enabled, selectedRect, world]);
+	}, [enabled, selectedRect, setCursor, world]);
 
 	const handleSelectPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
@@ -155,10 +160,10 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 			}
 
 			if (e.button === 1) {
-				world.cursor = "default";
+				setCursor("default");
 			}
 		}
-	}, [enabled, selectOrigin, world]);
+	}, [enabled, selectOrigin, setCursor, world]);
 
 	useEffect(() => {
 		if (world && !world.children.includes(selectorRect)) {
@@ -204,7 +209,12 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 			world.on("pointerup", handleSelectPointerUp);
 			world.on("pointerupoutside", handleSelectPointerUp);
 		}
-		return () => { world?.removeAllListeners(); };
+		return () => {
+			world?.removeListener("pointerdown", handleSelectPointerDown);
+			world?.removeListener("pointermove", handleSelectPointerMove);
+			world?.removeListener("pointerup", handleSelectPointerUp);
+			world?.removeListener("pointerupoutside", handleSelectPointerUp);
+		};
 	}, [enabled, handleSelectPointerDown, handleSelectPointerMove, handleSelectPointerUp, world]);
 
 

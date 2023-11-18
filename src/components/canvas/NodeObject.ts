@@ -97,30 +97,6 @@ export function NodeObject(props: NodeObjectProps) {
 		container.addChild(props.icon);
 	}
 
-	// debug dot
-	container.addChild(
-		new Graphics()
-			.beginFill("lightblue")
-			.drawEllipse(0, 0, 10, 10)
-	);
-
-	// // debug bounds
-	// container.on("added", () => {
-	// 	const bounds = container.getLocalBounds();
-	// 	const edgeDot = (x: number, y: number) => {
-	// 		const graphics = new Graphics()
-	// 			.beginFill("orange")
-	// 			.drawEllipse(0, 0, 10, 10);
-	// 		graphics.position.set(x, y);
-	// 		container.addChild(graphics);
-	// 	};
-
-	// 	edgeDot(bounds.left, bounds.top);
-	// 	edgeDot(bounds.right, bounds.top);
-	// 	edgeDot(bounds.right, bounds.bottom);
-	// 	edgeDot(bounds.left, bounds.bottom);
-	// });
-
 	container.name = id;
 	return container;
 }
