@@ -52,6 +52,17 @@ export function pointInBoundingBox(point: Point, box: [Point, Point, Point, Poin
 	return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
 }
 
+
+export function collisionTest(obj1: DisplayObject, obj2: DisplayObject) {
+	const bounds1 = obj1.getBounds();
+	const bounds2 = obj2.getBounds();
+
+	return bounds1.x < bounds2.x + bounds2.width
+		&& bounds1.x + bounds1.width > bounds2.x
+		&& bounds1.y < bounds2.y + bounds2.height
+		&& bounds1.y + bounds1.height > bounds2.y;
+}
+
 export function parsePoint(pt?: Point): string {
 	if (!pt) { return "invalid"; }
 	return `(${pt.x}, ${pt.y})`;

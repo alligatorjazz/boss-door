@@ -13,6 +13,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 		// console.count("initializing app...");
 		const { worldWidth, worldHeight, backgroundColor, ...appOptions } = options;
 		const app = new Application(appOptions);
+
 		const viewport = new ExtendedViewport({
 			screenWidth: app.view.width,
 			screenHeight: app.view.height,

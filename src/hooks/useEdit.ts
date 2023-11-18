@@ -4,9 +4,11 @@ import { EditMode, ViewHook } from "../types";
 import { useCanvas } from "./useCanvas";
 import { useNodes } from "./useNodes";
 import { useSelect } from "./useSelect";
+import { useGrid } from "./useGrid";
+import { useBuild } from "./useBuild";
 
 export const useEdit: ViewHook<{ mode: EditMode }, {
-	build: (cb: (actions: {
+	draw: (cb: (actions: {
 		add: ReturnType<typeof useNodes>["add"]
 		remove: ReturnType<typeof useNodes>["remove"]
 	}) => void) => void,
@@ -15,18 +17,29 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	const { viewport, world } = useCanvas(options);
 	const { add, remove, ...nodes } = useNodes(world);
 	const selected = useSelect({ world, nodes, viewport, enabled: mode === "move" });
+	useBuild({world, nodes, enabled: mode === "build"});
+	useGrid({ world, cellSize: 32, color: "lightgray", levels: 16, viewport });
 
+	// console.log("viewport scale: ", viewport?.scale.x);
 	// handling mode changes
 	useEffect(() => {
 		if (world && viewport) {
 			viewport.plugins.removeAll();
 			switch (mode) {
-				case "move":
+				case "move": {
+					viewport
+						.drag({ mouseButtons: "middle", wheel: true })
+						.clamp({ direction: "all" })
+						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
+						.clampZoom({ maxScale: 2 });
+					break;
+				}
 				case "build": {
 					viewport
 						.drag({ mouseButtons: "middle", wheel: true })
 						.clamp({ direction: "all" })
-						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true });
+						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
+						.clampZoom({ maxScale: 2 });
 					break;
 				}
 			}
@@ -34,12 +47,12 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	}, [mode, viewport, world]);
 
 	type BuildActions = { add: typeof add, remove: typeof remove };
-	const build = useCallback((cb: (actions: BuildActions) => void) => {
+	const draw = useCallback((cb: (actions: BuildActions) => void) => {
 		if (world) {
 			cb({ add, remove });
 		}
 	}, [add, remove, world]);
 
 
-	return { build, selected, ...nodes };
+	return { draw, selected, ...nodes };
 };

@@ -1,15 +1,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ModeSelect } from "../../components/ui/ModeSelect";
-import { useEdit } from "../../hooks/useEdit";
 import { EditMode } from "../../types";
 import { EditorContext } from "./Index.lib";
+import { useEdit } from "../../hooks/useEdit";
 
 export function Editor() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [mode, setMode] = useState<EditMode>("move");
+	const [mode, setMode] = useState<EditMode>("build");
 
-	const { build } = useEdit({
+	const { draw } = useEdit({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -21,13 +21,13 @@ export function Editor() {
 	});
 
 	useEffect(() => {
-		// build(({ add }) => {
-		// 	for (let i = 0; i < 4; i++) {
-		// 		const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
-		// 		b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
-		// 	}
-		// });
-	}, [build]);
+		draw(({ add }) => {
+			for (let i = 0; i < 4; i++) {
+				const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
+				b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
+			}
+		});
+	}, [draw]);
 
 
 	return (

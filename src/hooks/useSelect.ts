@@ -18,6 +18,8 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 	const [selected, setSelected] = useState<NodeHandle[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
 
+	useEffect(() => { if (enabled && world) { world.cursor = "default"; } }, [enabled, world]);
+
 	const selectorRect = useMemo(() => {
 		const prev = world?.children
 			.find(child => child.name === "selectorRect" && child instanceof Graphics) as Graphics | undefined;
@@ -100,7 +102,7 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 				const beginMovingSelection = selectedRect
 					.getLocalBounds()
 					.contains(localMousePosition.x, localMousePosition.y);
-				console.log(`selected contains point: ${beginMovingSelection}`);
+				// console.log(`selected contains point: ${beginMovingSelection}`);
 				if (beginMovingSelection) {
 					setMoveOrigin(localMousePosition);
 				} else {
@@ -196,14 +198,14 @@ export function useSelect({ world, enabled, viewport, nodes }: UseSelectOptions)
 
 	// registers event listeners
 	useEffect(() => {
-		if (world) {
+		if (world && enabled) {
 			world.on("pointerdown", handleSelectPointerDown);
 			world.on("pointermove", handleSelectPointerMove);
 			world.on("pointerup", handleSelectPointerUp);
 			world.on("pointerupoutside", handleSelectPointerUp);
 		}
 		return () => { world?.removeAllListeners(); };
-	}, [handleSelectPointerDown, handleSelectPointerMove, handleSelectPointerUp, world]);
+	}, [enabled, handleSelectPointerDown, handleSelectPointerMove, handleSelectPointerUp, world]);
 
 
 	return selected as ReadonlyArray<NodeHandle>;
