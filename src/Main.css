@@ -4,8 +4,10 @@
 
 body {
 	background-color: slategray;
-	 overflow: hidden;
+	overflow: hidden;
+	color: whitesmoke;
 }
+
 #root {
 	width: 100dvw;
 	height: 100dvh;

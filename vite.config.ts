@@ -1,5 +1,6 @@
 import { PluginOption, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import svgr from "vite-plugin-svgr";
 
 const fullReloadAlways: PluginOption = {
 	handleHotUpdate({ server }) {
@@ -10,7 +11,7 @@ const fullReloadAlways: PluginOption = {
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-	plugins: [react(), fullReloadAlways],
+	plugins: [react(), svgr({}), fullReloadAlways],
 
 	// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
 	//
