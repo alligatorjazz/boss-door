@@ -12,7 +12,11 @@ export function ModeSelect() {
 		<button
 			{...buttonProps}
 			className={
-				["p-1", mode == selectedMode ? "shadow-indent" : "shadow-none"].join(" ")
+				[
+					"p-1 cursor-pointer hover:backdrop-brightness-125 transition-all",
+					"active:shadow-indent active:backdrop-brightness-200",
+					mode == selectedMode ? "shadow-indent" : "shadow-none"
+				].join(" ")
 			}
 			onClick={() => setMode?.(mode)}
 		>
