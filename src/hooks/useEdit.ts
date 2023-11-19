@@ -6,19 +6,21 @@ import { useNodes } from "./useNodes";
 import { useSelect } from "./useSelect";
 import { useGrid } from "./useGrid";
 import { useBuild } from "./useBuild";
+import { Container } from "pixi.js";
 
 export const useEdit: ViewHook<{ mode: EditMode }, {
 	draw: (cb: (actions: {
 		add: ReturnType<typeof useNodes>["add"]
 		remove: ReturnType<typeof useNodes>["remove"]
 	}) => void) => void,
-	selected: ReadonlyArray<NodeHandle>
+	selected: ReadonlyArray<NodeHandle>,
+	world?: Omit<Container, "addChild" | "removeChild"> | null ;
 } & Omit<ReturnType<typeof useNodes>, "add" | "remove">> = ({ mode, ...options }) => {
 	const { viewport, world, setCursor } = useCanvas(options);
 	const { add, remove, ...nodes } = useNodes(world);
 	const selected = useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor });
 	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor });
-	
+
 	useGrid({ world, cellSize: 32, color: "lightgray", levels: 16, viewport });
 
 	// console.log("viewport scale: ", viewport?.scale.x);
@@ -55,5 +57,5 @@ export const useEdit: ViewHook<{ mode: EditMode }, {
 	}, [add, remove, world]);
 
 
-	return { draw, selected, ...nodes };
+	return { draw, selected, world, ...nodes };
 };

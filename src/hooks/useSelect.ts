@@ -23,6 +23,13 @@ export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSel
 		if (enabled && world) {
 			setCursor("default");
 		}
+
+		if (!enabled) {
+			setSelectOrigin(null);
+			setSelectTerminus(null);
+			setSelected([]);
+			setMoveOrigin(null);
+		}
 	}, [enabled, setCursor, world]);
 
 	const selectorRect = useMemo(() => {
@@ -107,7 +114,6 @@ export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSel
 				const beginMovingSelection = selectedRect
 					.getLocalBounds()
 					.contains(localMousePosition.x, localMousePosition.y);
-				// console.log(`selected contains point: ${beginMovingSelection}`);
 				if (beginMovingSelection) {
 					setMoveOrigin(localMousePosition);
 				} else {

@@ -1,11 +1,12 @@
 import { Viewport } from "pixi-viewport";
 import { Container, FederatedPointerEvent, Graphics, Point } from "pixi.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { Room } from "../components/canvas/Room";
 import { collisionTest } from "../lib";
 import { EditModeOptions } from "../types";
 import { useNodes } from "./useNodes";
+import { EditorContext } from "../routes/Editor/Index.lib";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -16,6 +17,7 @@ type UseBuildOptions = {
 
 export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
+	const { cursorOverUI } = useContext(EditorContext);
 
 	// disables cursor so pseudo-cursor can be enabled
 	useEffect(() => {
@@ -25,24 +27,13 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 	}, [enabled, setCursor, world]);
 
 	const pseudoCursor = useMemo(() => {
-		if (viewport) {
-			const graphics = BuildDot({ position: new Point(0, 0), viewport });
+		if (viewport && world) {
+			const graphics = world.children.find(obj => obj.name === "pseudoCursor") 
+				?? BuildDot({ position: new Point(0, 0), viewport });
 			graphics.name = "pseudoCursor";
 			return graphics;
-		}
-	}, [viewport]);
-
-
-	const buildRect = useMemo(() => {
-		const prev = world?.children
-			.find(child => child.name === "buildRect" && child instanceof Graphics) as Graphics | undefined;
-		const graphics = prev ?? new Graphics();
-		// graphics.position.copyFrom(buildOrigin ?? new Point(0, 0));
-		graphics.name = "buildRect";
-		graphics.zIndex = 100;
-		if (!prev) { world?.addChild(graphics); }
-		return graphics;
-	}, [world]);
+		} 
+	}, [viewport, world]);
 
 	const placeDot = useCallback((position: Point, color?: string) => {
 		if (world && viewport) {
@@ -74,12 +65,6 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 	// event handlers 
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
-			// const localMousePosition = e.getLocalPosition(world);
-			// left mouse
-			// if (e.button === 0) {
-			// 	setCursor("crosshair");
-			// }
-
 			if (e.button === 1) {
 				setCursor("grabbing");
 				if (pseudoCursor) {
@@ -102,11 +87,10 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 	}, [world, enabled, pseudoCursor]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
-		if (world && enabled && pseudoCursor) {
+		if (world && enabled && pseudoCursor && !cursorOverUI) {
 			const localMousePosition = e.getLocalPosition(world);
 			if (e.button === 0) {
-				if (buildDots) {
-					console.log("processing dot");
+				if (buildDots && buildDots.length > 0) {
 					if (collisionTest(buildDots[0], pseudoCursor) && buildDots.length > 2) {
 						closeShape();
 					} else {
@@ -120,7 +104,14 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 			setCursor("none");
 			pseudoCursor.visible = true;
 		}
-	}, [world, enabled, pseudoCursor, setCursor, buildDots, closeShape, placeDot]);
+	}, [world, enabled, pseudoCursor, cursorOverUI, setCursor, buildDots, closeShape, placeDot]);
+
+	useEffect(() => {
+		if (!enabled) {
+			buildDots?.map(dot => dot.destroy());
+			setBuildDots(null);
+		}
+	}, [buildDots, enabled]);
 
 	// registers event listeners
 	useEffect(() => {
@@ -130,6 +121,7 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
 		}
+
 		return () => {
 			world?.removeListener("pointerdown", handleBuildPointerDown);
 			world?.removeListener("pointerup", handleBuildPointerUp);
