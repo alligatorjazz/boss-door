@@ -7,12 +7,12 @@ import {
 	RouterProvider,
 } from "react-router-dom";
 import "./Main.css";
-import { Editor } from "./routes/Editor/Index";
+import { Edit } from "./routes/Edit/Index";
 import FontFaceObserver from "fontfaceobserver";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
-		<Route path="/" element={<Editor />}>
+		<Route path="/" element={<Edit />}>
 		</Route>
 	)
 );

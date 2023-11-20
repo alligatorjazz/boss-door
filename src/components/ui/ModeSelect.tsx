@@ -2,7 +2,7 @@ import { HTMLAttributes, useContext } from "react";
 import Pointer from "../../assets/feather/mouse-pointer.svg?react";
 import Edit from "../../assets/feather/edit-3.svg?react";
 import { EditMode } from "../../types";
-import { EditorContext } from "../../routes/Editor/Index.lib";
+import { EditorContext } from "../../routes/Edit/Index.lib";
 
 interface Props extends HTMLAttributes<HTMLDivElement> { }
 

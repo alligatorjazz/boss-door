@@ -4,16 +4,16 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { Room } from "../components/canvas/Room";
 import { collisionTest } from "../lib";
-import { EditModeOptions } from "../types";
 import { useNodes } from "./useNodes";
-import { EditorContext } from "../routes/Editor/Index.lib";
+import { EditorContext } from "../routes/Edit/Index.lib";
 
 type UseBuildOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove">;
-} & EditModeOptions
+	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+	setCursor: (mode: string) => void;
+}
 
 export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
@@ -28,11 +28,11 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 
 	const pseudoCursor = useMemo(() => {
 		if (viewport && world) {
-			const graphics = world.children.find(obj => obj.name === "pseudoCursor") 
+			const graphics = world.children.find(obj => obj.name === "pseudoCursor")
 				?? BuildDot({ position: new Point(0, 0), viewport });
 			graphics.name = "pseudoCursor";
 			return graphics;
-		} 
+		}
 	}, [viewport, world]);
 
 	const placeDot = useCallback((position: Point, color?: string) => {

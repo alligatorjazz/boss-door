@@ -3,23 +3,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ModeSelect } from "../../components/ui/ModeSelect";
 import { EditMode } from "../../types";
 import { EditorContext } from "./Index.lib";
-import { useEdit } from "../../hooks/useEdit";
+import { useView } from "../../hooks/useView";
+import { Editor } from "../../components/ui/Editor";
 
-export function Editor() {
+export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
-	const viewRef = useRef<HTMLDivElement>(null);
+	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("build");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 
-	const { draw, world } = useEdit({
+	const { draw, viewport, world, setCursor, nodes } = useView({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
 		worldHeight: 10000,
-		ref: viewRef,
+		ref: windowRef,
 		backgroundColor: "slategray",
-		antialias: true,
-		mode
+		antialias: true
 	});
 
 
@@ -47,11 +47,10 @@ export function Editor() {
 	return (
 		<EditorContext.Provider value={{ mode, setMode, cursorOverUI }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
-				<div className={["w-full h-full",].join(" ")} ref={viewRef}></div>
+				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<div ref={uiRef} className="h-full flex flex-col">
 						<ModeSelect className="flex-1" />
-						<p className="bg-gray-700">{`${cursorOverUI}`}</p>
 					</div>
 				</section>
 			</div>

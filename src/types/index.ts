@@ -2,6 +2,7 @@ import { Viewport } from "pixi-viewport";
 import { Application, Container, DisplayObject, IApplicationOptions, ICanvas } from "pixi.js";
 import { MutableRefObject } from "react";
 import { MapNode } from "../lib/nodes";
+import { useNodes } from "../hooks/useNodes";
 
 export type Empty = Record<string, never>
 
@@ -30,7 +31,4 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 export type EditMode = "move" | "build";
-
-export type EditModeOptions = {
-	setCursor: (mode: string) => void;
-}
+export type BuildActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;

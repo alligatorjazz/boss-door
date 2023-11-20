@@ -5,12 +5,7 @@ import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
 import { MapNode, MapNodes, NodeHandle, createNode } from "../lib/nodes";
 
-type AddOptions = {
-	name: string,
-	// state?: MapNodes<T>["state"]["derived"] extends keyof DisplayObject ?
-	// { [key in MapNodes<T>["state"]["derived"]]: DisplayObject[key] } : never
-}
-
+type AddOptions = { name: string }
 type RemoveOptions = { id: string };
 
 export function useNodes(world?: Container | null) {
@@ -86,7 +81,7 @@ export function useNodes(world?: Container | null) {
 	const removeAll = useCallback(() => {
 		console.count("remove all called");
 		setNodes(() => {
-			setObjects(prev => { 
+			setObjects(prev => {
 				prev.map(prevObj => prevObj.destroy());
 				return [];
 			});
