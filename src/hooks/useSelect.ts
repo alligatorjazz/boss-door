@@ -3,14 +3,15 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { NodeHandle } from "../lib/nodes";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
-import { EditModeOptions } from "../types";
+import { useBindings } from "./useBindings";
 
 type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
 	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove">;
-} & EditModeOptions
+	setCursor: (mode: string) => void;
+} 
 
 const selectColor = "#0253f5";
 export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSelectOptions) {
@@ -204,9 +205,21 @@ export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSel
 
 	// draws selection outlines around selected objects
 	useEffect(() => {
-		if (selected.length > 0) { outlineSelections(); }
+		if (selected.length > 0) { 
+			outlineSelections(); 
+		} else {
+			selectedRect.clear();
+		}
 	}, [nodes, outlineSelections, selected, selectedRect, world]);
 
+	// key events
+	const bind = useBindings();
+	useEffect(() => {
+		// clears selection on secape
+		bind("escape", () => setSelected([]));
+	}, [bind]);
+
+	
 	// registers event listeners
 	useEffect(() => {
 		if (world && enabled) {
