@@ -6,6 +6,7 @@ import { Room } from "../components/canvas/Room";
 import { collisionTest } from "../lib";
 import { useNodes } from "./useNodes";
 import { EditorContext } from "../routes/Edit/Index.lib";
+import { useBindings } from "./useBindings";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -62,7 +63,7 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 		}
 	}, [buildDots, world]);
 
-	// event handlers 
+	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
 			if (e.button === 1) {
@@ -106,12 +107,33 @@ export function useBuild({ world, enabled, viewport, setCursor }: UseBuildOption
 		}
 	}, [world, enabled, pseudoCursor, cursorOverUI, setCursor, buildDots, closeShape, placeDot]);
 
+	// key events
+	const bind = useBindings();
+	useEffect(() => {
+		bind("escape", () => setBuildDots(null));
+	}, [bind]);
+
+	// deletes build dots on mode change
 	useEffect(() => {
 		if (!enabled) {
 			buildDots?.map(dot => dot.destroy());
 			setBuildDots(null);
 		}
 	}, [buildDots, enabled]);
+
+	// sync with world state 
+	useEffect(() => {
+		if (world) {
+			const worldDots = world.children.filter(obj => obj.name === "buildDot");
+			if (!buildDots) {
+				worldDots.map(obj => obj.destroy());
+			} else {
+				worldDots
+					.filter(obj => !buildDots.includes(obj as Graphics))
+					.map(obj => obj.destroy());
+			}
+		}
+	}, [buildDots, world]);
 
 	// registers event listeners
 	useEffect(() => {

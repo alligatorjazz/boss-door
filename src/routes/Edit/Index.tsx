@@ -1,16 +1,23 @@
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ModeSelect } from "../../components/ui/ModeSelect";
 import { EditMode } from "../../types";
 import { EditorContext } from "./Index.lib";
 import { useView } from "../../hooks/useView";
 import { Editor } from "../../components/ui/Editor";
-
+import { KeyBindings } from "../../types/keys";
+import { Key } from "ts-key-enum";
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("build");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
+
+	const bindings: KeyBindings = useMemo(() => {
+		return {
+			"escape": { key: Key.Escape }
+		};
+	}, []);
 
 	const { draw, viewport, world, setCursor, nodes } = useView({
 		width: window.innerWidth,
@@ -45,7 +52,7 @@ export function Edit() {
 
 
 	return (
-		<EditorContext.Provider value={{ mode, setMode, cursorOverUI }}>
+		<EditorContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
