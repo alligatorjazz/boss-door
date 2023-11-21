@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ModeSelect } from "../../components/ui/ModeSelect";
 import { EditMode } from "../../types";
-import { EditorContext } from "./Index.lib";
+import { DungeonContext } from "./Index.lib";
 import { useView } from "../../hooks/useView";
 import { Editor } from "../../components/ui/Editor";
 import { KeyBindings } from "../../types/keys";
@@ -12,6 +12,10 @@ export function Edit() {
 	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("build");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
+	const [minCellSize, setMinCellSize] = useState(16);
+	const [debug, log] = useState<string | null>(null);
+
+	useEffect(() => console.log("min cell size: ", minCellSize));
 
 	const bindings: KeyBindings = useMemo(() => {
 		return {
@@ -52,15 +56,16 @@ export function Edit() {
 
 
 	return (
-		<EditorContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
+		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, minCellSize, setMinCellSize, ui: { log } }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<div ref={uiRef} className="h-full flex flex-col">
 						<ModeSelect className="flex-1" />
+						{debug && <div className="bg-black">{debug}</div>}
 					</div>
 				</section>
 			</div>
-		</EditorContext.Provider>
+		</DungeonContext.Provider>
 	);
 }

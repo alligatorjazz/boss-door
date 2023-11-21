@@ -1,54 +1,55 @@
 import { Viewport } from "pixi-viewport";
 import { Container, Graphics } from "pixi.js";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type UseGridOptions = {
 	world?: Container | null,
 	viewport?: Viewport | null;
-	cellSize: number,
 	color: string,
-	levels: number
+	levels: number,
+	baseCellSize: number;
 }
 
-export function useGrid({ world, cellSize, color, levels, viewport }: UseGridOptions) {
+export function useGrid({ world, color, levels, viewport, baseCellSize }: UseGridOptions) {
+	const [minCellSize, setMinCellSize] = useState(baseCellSize);
 	const updateGrid = useCallback((graphics: Graphics) => {
 		if (world && viewport) {
-			// console.log("updating grid...");
 			graphics.clear();
-			const bounds = world.getLocalBounds();
+			const { worldWidth, worldHeight } = viewport;
 			for (let level = levels; level > 0; level--) {
-				const prominence = (level * viewport.scale.x) / cellSize;
+				const prominence = (baseCellSize * level) / ((worldWidth + worldHeight) / 2);
+				const alpha = prominence * 20;
 				// console.log(`prominence for level ${level}: ${prominence}`);
-
-				if (prominence > 0.025) { 
-					const levelCellSize = cellSize * (2 ** (level - 1));
-					// console.log("drawing grid level: ", level, levelCellSize, prominence);
-
+				if (alpha > 0.1) {
+					const levelCellSize = baseCellSize * (2 ** (level - 1));
 					graphics
 						.lineStyle({
 							alignment: 0.5,
 							width: Math.min(4, level),
-							color: color,
-							alpha: prominence < 0.05 ? 0.5 : 1
+							color,
+							alpha: prominence * 20
 						});
 
-					for (let i = 0; i < bounds.height / levelCellSize; i++) {
+					for (let i = 0; i < Math.floor(worldHeight / levelCellSize); i++) {
 						graphics
-							.moveTo(-bounds.width / 2, (i * levelCellSize) - bounds.height / 2)
-							.lineTo(bounds.width / 2, (i * levelCellSize) - bounds.height / 2);
+							.moveTo(-worldWidth / 2, (i * levelCellSize) - worldHeight / 2)
+							.lineTo(worldWidth / 2, (i * levelCellSize) - worldHeight / 2);
+						
 					}
 
-					for (let i = 0; i < bounds.width / levelCellSize; i++) {
+					for (let i = 0; i < Math.floor(worldWidth / levelCellSize); i++) {
 						graphics
-							.moveTo((i * levelCellSize) - bounds.width / 2, -bounds.height / 2)
-							.lineTo((i * levelCellSize) - bounds.width / 2, bounds.height / 2);
+							.moveTo((i * levelCellSize) - worldWidth / 2, -worldHeight / 2)
+							.lineTo((i * levelCellSize) - worldWidth / 2, worldHeight / 2);
+						
 					}
+					setMinCellSize(levelCellSize);
 				}
 			}
 		}
-	}, [cellSize, color, levels, viewport, world]);
+	}, [world, viewport, levels, baseCellSize, color]);
 
-	const grid = useMemo(() => {
+	const obj = useMemo(() => {
 		const graphics = world?.children.find(
 			child => child.name === "grid" && child instanceof Graphics
 		) as Graphics ?? new Graphics();
@@ -60,9 +61,12 @@ export function useGrid({ world, cellSize, color, levels, viewport }: UseGridOpt
 			world.addChild(graphics);
 		}
 
+
+		graphics.zIndex = -50;
 		graphics.name = "grid";
+
 		return graphics;
 	}, [updateGrid, viewport, world]);
 
-	return grid;
+	return { obj, updateGrid, minCellSize };
 }

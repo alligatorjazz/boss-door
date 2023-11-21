@@ -2,11 +2,13 @@ import { Dispatch, SetStateAction, createContext } from "react";
 import { EditMode } from "../../types";
 import { KeyBindings } from "../../types/keys";
 
-type EditorContextData = {
+type DungeonContextData = {
 	mode: EditMode,
-	setMode?: Dispatch<SetStateAction<EditMode>>,
+	setMode: Dispatch<SetStateAction<EditMode>>,
 	cursorOverUI: boolean,
-	bindings: KeyBindings
+	bindings: KeyBindings,
+	// debug tool
+	ui: { log: Dispatch<SetStateAction<string | null>> }
 };
 
-export const EditorContext = createContext<EditorContextData>({} as EditorContextData);
+export const DungeonContext = createContext<DungeonContextData>({} as DungeonContextData);

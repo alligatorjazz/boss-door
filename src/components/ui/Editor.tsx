@@ -1,6 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { Container } from "pixi.js";
-import { MutableRefObject, useEffect } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import { useBuild } from "../../hooks/useBuild";
 import { useGrid } from "../../hooks/useGrid";
 import { useNodes } from "../../hooks/useNodes";
@@ -16,9 +16,10 @@ interface Props {
 	windowRef: MutableRefObject<HTMLDivElement | null>;
 }
 export function Editor({ world, viewport, setCursor, nodes, mode, windowRef }: Props) {
+	const baseCellSize = 16;
+	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
 	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor });
-	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor });
-	useGrid({ world, cellSize: 32, color: "lightgray", levels: 16, viewport });
+	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize });
 
 	// handling mode changes
 	useEffect(() => {
@@ -30,7 +31,7 @@ export function Editor({ world, viewport, setCursor, nodes, mode, windowRef }: P
 						.drag({ mouseButtons: "middle", wheel: true })
 						.clamp({ direction: "all" })
 						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
-						.clampZoom({ maxScale: 2 });
+						.clampZoom({ maxScale: 1 });
 					break;
 				}
 				case "build": {
@@ -38,7 +39,7 @@ export function Editor({ world, viewport, setCursor, nodes, mode, windowRef }: P
 						.drag({ mouseButtons: "middle", wheel: true })
 						.clamp({ direction: "all" })
 						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
-						.clampZoom({ maxScale: 2 });
+						.clampZoom({ maxScale: 1 });
 					break;
 				}
 			}

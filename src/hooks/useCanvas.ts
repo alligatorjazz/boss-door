@@ -28,6 +28,7 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 		});
 
 		viewport.moveCenter(worldWidth / 2, worldHeight / 2);
+
 		const world = new Container();
 		world.sortableChildren = true;
 		world.eventMode = "static";
@@ -43,6 +44,17 @@ export function useCanvas({ ...options }: CanvasOptions): Readonly<CanvasHandles
 		viewport.addChild(world);
 		app.stage.addChild(viewport);
 
+
+		viewport.addChild(
+			(() => {
+				const obj = new Graphics()
+					.beginFill("violet", 0.5)
+					.drawCircle(0, 0, 40);
+				obj.pivot.set(40);
+				obj.zIndex = 1000;
+				return obj;
+			})()
+		);
 		setApp(app);
 		setViewport(viewport);
 		setWorld(world);

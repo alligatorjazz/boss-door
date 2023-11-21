@@ -1,5 +1,6 @@
 import { Container, DisplayObject, Point } from "pixi.js";
 import { MutableRefObject, ReactElement } from "react";
+import { number } from "zod";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
 	container.removeChildren();
@@ -18,7 +19,8 @@ export function updatePixiChildren(container: Container, ...children: ReactEleme
 	}
 }
 
-export const randomColor = () => "#" + Math.floor(Math.random() * 0xFFFFFF).toString(16);
+export const randomColor = () => "#" + new Array(6).fill("1234567890ABCDEF".charAt(Math.floor(16 * Math.random()))).join("");
+
 export const standardNodeWidth = 128;
 export function toTitleCase(str: string) {
 	return str.replace(
@@ -66,4 +68,44 @@ export function collisionTest(obj1: DisplayObject, obj2: DisplayObject) {
 export function parsePoint(pt?: Point): string {
 	if (!pt) { return "invalid"; }
 	return `(${pt.x}, ${pt.y})`;
+}
+
+export function snap(x: number, step: number) {
+	return Math.round(x / step) * step;
+}
+
+export function snapPoint(pt: Point, step: number | [x: number, y: number]) {
+	console.log("snapping: ", pt, step);
+	if (typeof step === "number") {
+		return new Point(snap(pt.x, step), snap(pt.y, step));
+	} else {
+		return new Point(snap(pt.x, step[0]), snap(pt.y, step[1]));
+	}
+}
+
+export function snapToArray(x: number, arr: number[]) {
+	let lowestDifference = Number.MAX_SAFE_INTEGER;
+	let target = 0;
+	arr.map(value => {
+		if (Math.abs(x - value) < lowestDifference) {
+			lowestDifference = x - value;
+			target = value;
+		}
+	});
+
+	return target;
+}
+export function min(array: number[]) {
+	let min = array[0];
+	array.map((value) => {
+		if (!min) {
+			min = value;
+		}
+
+		if (min > value) {
+			min = value;
+		}
+	});
+
+	return min;
 }

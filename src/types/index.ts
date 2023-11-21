@@ -1,8 +1,9 @@
 import { Viewport } from "pixi-viewport";
 import { Application, Container, DisplayObject, IApplicationOptions, ICanvas } from "pixi.js";
 import { MutableRefObject } from "react";
-import { MapNode } from "../lib/nodes";
+import { useGrid } from "../hooks/useGrid";
 import { useNodes } from "../hooks/useNodes";
+import { MapNode } from "../lib/nodes";
 
 export type Empty = Record<string, never>
 
@@ -33,3 +34,4 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 export type EditMode = "move" | "build";
 export type BuildActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
 
+export type Grid = ReturnType<typeof useGrid>;

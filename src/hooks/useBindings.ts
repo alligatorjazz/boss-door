@@ -1,9 +1,9 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { EditorContext } from "../routes/Edit/Index.lib";
+import { DungeonContext } from "../routes/Edit/Index.lib";
 import { Command, Modifiers } from "../types/keys";
 import { Key } from "ts-key-enum";
 export function useBindings() {
-	const { bindings } = useContext(EditorContext);
+	const { bindings } = useContext(DungeonContext);
 	const [cmdBindings, setCommandBindings] = useState<Partial<Record<Command, (e?: KeyboardEvent) => void>>>({});
 
 	const bind = useCallback((cmd: Command, action: (e?: KeyboardEvent) => void) => {
