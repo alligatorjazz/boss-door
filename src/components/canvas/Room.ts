@@ -4,9 +4,9 @@ const roomBorder = "#222";
 export function Room(pts: Point[]) {
 	const graphics = new Graphics()
 		.beginFill(roomColor)
-		.lineStyle({alignment: 0.5, color: roomBorder})
+		.lineStyle({ alignment: 0.5, color: roomBorder, width: 5})
 		.drawPolygon(pts)
 		.endFill();
-		
+
 	return graphics;
 }

@@ -1,6 +1,5 @@
 import { Container, DisplayObject, Point } from "pixi.js";
 import { MutableRefObject, ReactElement } from "react";
-import { number } from "zod";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
 	container.removeChildren();
@@ -108,4 +107,28 @@ export function min(array: number[]) {
 	});
 
 	return min;
+}
+
+export function areLinesIntersecting(a1: Point, a2: Point, b1: Point, b2: Point): boolean {
+	// Calculate slopes
+	const slopeA = (a2.y - a1.y) / (a2.x - a1.x);
+	const slopeB = (b2.y - b1.y) / (b2.x - b1.x);
+
+	// Check if lines are parallel
+	if (slopeA === slopeB) {
+		return false; // Lines are parallel and do not intersect
+	}
+
+	// Calculate the intersection point
+	const intersectionX = ((slopeA * a1.x - slopeB * b1.x) + b1.y - a1.y) / (slopeA - slopeB);
+
+	// Check if the intersection point lies within the range of both line segments
+	if (
+		(intersectionX >= Math.min(a1.x, a2.x) && intersectionX <= Math.max(a1.x, a2.x)) &&
+		(intersectionX >= Math.min(b1.x, b2.x) && intersectionX <= Math.max(b1.x, b2.x))
+	) {
+		return true; // Lines intersect
+	} else {
+		return false; // Lines do not intersect within the given segments
+	}
 }

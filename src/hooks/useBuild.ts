@@ -7,6 +7,7 @@ import { collisionTest, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
+import { ExtendedGraphics } from "pixi-extended-graphics";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -68,6 +69,25 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		}
 	}, [buildDots, world]);
 
+	const placementLine = useMemo(() => {
+		const graphics = world?.children.find(obj => obj.name === "placementLine") as ExtendedGraphics
+			?? new ExtendedGraphics();
+		graphics.clear();
+		graphics.name = "placementLine";
+		graphics.zIndex = 100;
+		world?.addChild(graphics);
+		return graphics;
+	}, [world]);
+	
+	const drawPlacementLine = useCallback(() => {
+		if (placementLine && buildDots && buildDots.length > 0 && pseudoCursor) {
+			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "red" });
+			placementLine.moveToPoint(buildDots[buildDots.length - 1].position);
+			placementLine.dashedLineToPoint(pseudoCursor.position, 10, 2);
+			// console.log(`drawing: (${startX}, ${startY}) -> (${endX}, ${endY})`);
+		}
+	}, [buildDots, placementLine, pseudoCursor]);
+
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
@@ -85,13 +105,14 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		if (world && enabled && pseudoCursor && viewport) {
 			if (pseudoCursor.parent != world) { world.addChild(pseudoCursor); }
 			const localMouse = e.getLocalPosition(world);
-
-			pseudoCursor.position.copyFrom(snapEnabled ? new Point(
+			const newPoint = snapEnabled ? new Point(
 				snap(localMouse.x, minCellSize),
 				snap(localMouse.y, minCellSize)
-			) : localMouse);
+			) : localMouse;
+			pseudoCursor.position.copyFrom(newPoint);
+			drawPlacementLine();
 		}
-	}, [world, enabled, pseudoCursor, viewport, snapEnabled, minCellSize]);
+	}, [world, enabled, pseudoCursor, viewport, snapEnabled, minCellSize, drawPlacementLine]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled && pseudoCursor && !cursorOverUI) {
