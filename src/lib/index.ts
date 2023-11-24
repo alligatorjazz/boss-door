@@ -1,4 +1,4 @@
-import { Container, DisplayObject, Point } from "pixi.js";
+import { Container, DisplayObject, IPoint, Point} from "pixi.js";
 import { MutableRefObject, ReactElement } from "react";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
@@ -30,30 +30,6 @@ export function toTitleCase(str: string) {
 	);
 }
 
-export function pointInBoundingBox(point: Point, box: [Point, Point, Point, Point]): boolean {
-	// A bounding box is formed by four points in a specific order.
-	// Let's assume the points are ordered in a clockwise manner.
-
-	// Use the shoelace formula to determine the orientation of the points.
-	const orientation =
-		(box[1].y - box[0].y) * (point.x - box[1].x) -
-		(box[1].x - box[0].x) * (point.y - box[1].y);
-
-	// If the orientation is not the same for all edges, the point is outside the box.
-	if (orientation !== 0) {
-		return false;
-	}
-
-	// Check if the point is within the x and y range of the bounding box.
-	const minX = Math.min(box[0].x, box[1].x, box[2].x, box[3].x);
-	const maxX = Math.max(box[0].x, box[1].x, box[2].x, box[3].x);
-	const minY = Math.min(box[0].y, box[1].y, box[2].y, box[3].y);
-	const maxY = Math.max(box[0].y, box[1].y, box[2].y, box[3].y);
-
-	return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
-}
-
-
 export function collisionTest(obj1: DisplayObject, obj2: DisplayObject) {
 	const bounds1 = obj1.getBounds();
 	const bounds2 = obj2.getBounds();
@@ -64,7 +40,7 @@ export function collisionTest(obj1: DisplayObject, obj2: DisplayObject) {
 		&& bounds1.y + bounds1.height > bounds2.y;
 }
 
-export function parsePoint(pt?: Point): string {
+export function parsePoint(pt?: IPoint): string {
 	if (!pt) { return "invalid"; }
 	return `(${pt.x}, ${pt.y})`;
 }
@@ -107,28 +83,4 @@ export function min(array: number[]) {
 	});
 
 	return min;
-}
-
-export function areLinesIntersecting(a1: Point, a2: Point, b1: Point, b2: Point): boolean {
-	// Calculate slopes
-	const slopeA = (a2.y - a1.y) / (a2.x - a1.x);
-	const slopeB = (b2.y - b1.y) / (b2.x - b1.x);
-
-	// Check if lines are parallel
-	if (slopeA === slopeB) {
-		return false; // Lines are parallel and do not intersect
-	}
-
-	// Calculate the intersection point
-	const intersectionX = ((slopeA * a1.x - slopeB * b1.x) + b1.y - a1.y) / (slopeA - slopeB);
-
-	// Check if the intersection point lies within the range of both line segments
-	if (
-		(intersectionX >= Math.min(a1.x, a2.x) && intersectionX <= Math.max(a1.x, a2.x)) &&
-		(intersectionX >= Math.min(b1.x, b2.x) && intersectionX <= Math.max(b1.x, b2.x))
-	) {
-		return true; // Lines intersect
-	} else {
-		return false; // Lines do not intersect within the given segments
-	}
 }

@@ -1,3 +1,5 @@
+import "@pixi/math-extras";
+import FontFaceObserver from "fontfaceobserver";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
@@ -8,7 +10,6 @@ import {
 } from "react-router-dom";
 import "./Main.css";
 import { Edit } from "./routes/Edit/Index";
-import FontFaceObserver from "fontfaceobserver";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(

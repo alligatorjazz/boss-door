@@ -7,7 +7,7 @@ import { useView } from "../../hooks/useView";
 import { Editor } from "../../components/ui/Editor";
 import { KeyBindings } from "../../types/keys";
 import { Key } from "ts-key-enum";
-import "@pixi/math-extras";
+
 
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);

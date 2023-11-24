@@ -4,6 +4,7 @@ import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
 import { useNodes } from "../hooks/useNodes";
 import { MapNode } from "../lib/nodes";
+import { number } from "zod";
 
 export type Empty = Record<string, never>
 

@@ -1,13 +1,15 @@
 import { Viewport } from "pixi-viewport";
-import { Container, FederatedPointerEvent, Graphics, LINE_JOIN, Point } from "pixi.js";
+import { segmentIntersection } from "@pixi/math-extras";
+import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { Room } from "../components/canvas/Room";
-import { collisionTest, snap } from "../lib";
+import { collisionTest, parsePoint, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 import { ExtendedGraphics } from "pixi-extended-graphics";
+import { GenericDot } from "../components/canvas/GenericDot";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -43,11 +45,32 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		if (world && viewport) {
 			const graphics = BuildDot({ position, color, viewport });
 			setBuildDots(prev => {
-				world.addChild(graphics);
-				if (prev) {
-					return [...prev, graphics];
-				} else {
-					return [graphics];
+				try {
+					if (prev) {
+						// disallow intersection
+						const lines: [Point, Point][] = [];
+						prev.map((dot, index) => {
+							if (index < prev.length - 1) {
+								lines.push([dot.position, prev[index + 1].position]);
+							}
+						});
+						const newLine: [IPoint, IPoint] = [prev[prev.length - 1].position, position];
+						console.log(`lines: ${lines.map(line => line.map(pt => parsePoint(pt)))}, newline: ${newLine.map(pt => parsePoint(pt))}`);
+						for (const line of lines) {
+							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);						
+							if (!isNaN(intersection.x) && intersection.x != newLine[0].x) {
+								throw new Error("Cannot place a dot that intersects a previously drawn line.");
+							}
+						}
+						world.addChild(graphics);
+						return [...prev, graphics];
+					} else {
+						world.addChild(graphics);
+						return [graphics];
+					}
+				} catch (err) {
+					console.error(err);
+					return prev;
 				}
 			});
 		}
@@ -136,7 +159,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 				if (pseudoCursor) {
 					pseudoCursor.visible = false;
 				}
-				
+
 			}
 		}
 	}, [enabled, pseudoCursor, setCursor, world]);
