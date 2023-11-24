@@ -3,9 +3,8 @@ import { Container, FederatedPointerEvent, Graphics, Point } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { Room } from "../components/canvas/Room";
-import { collisionTest, snap, snapToArray } from "../lib";
+import { collisionTest, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
-import { Grid } from "../types";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 
@@ -20,7 +19,7 @@ type UseBuildOptions = {
 
 export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
-	const [snapEnabled, _setSnapEnabled] = useState(true);
+	const [snapEnabled, setSnapEnabled] = useState(false);
 	// TODO: connect to useGrid and enable adaptive snap
 	const { cursorOverUI } = useContext(DungeonContext);
 
@@ -117,6 +116,8 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 	const bind = useBindings();
 	useEffect(() => {
 		bind("escape", () => setBuildDots(null));
+		bind("snap-start", () => setSnapEnabled(true));
+		bind("snap-end", () => setSnapEnabled(false));
 	}, [bind]);
 
 	// deletes build dots on mode change

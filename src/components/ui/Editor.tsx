@@ -1,6 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { Container } from "pixi.js";
-import { MutableRefObject, useEffect, useState } from "react";
+import { MutableRefObject, useEffect } from "react";
 import { useBuild } from "../../hooks/useBuild";
 import { useGrid } from "../../hooks/useGrid";
 import { useNodes } from "../../hooks/useNodes";

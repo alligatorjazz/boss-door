@@ -12,14 +12,13 @@ export function Edit() {
 	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("build");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
-	const [minCellSize, setMinCellSize] = useState(16);
 	const [debug, log] = useState<string | null>(null);
-
-	useEffect(() => console.log("min cell size: ", minCellSize));
 
 	const bindings: KeyBindings = useMemo(() => {
 		return {
-			"escape": { key: Key.Escape }
+			"escape": { key: Key.Escape },
+			"snap-start": { modifiers: [Key.Shift], onkey: "down" },
+			"snap-end": { modifiers: [Key.Shift], onkey: "up" }
 		};
 	}, []);
 
@@ -56,7 +55,7 @@ export function Edit() {
 
 
 	return (
-		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, minCellSize, setMinCellSize, ui: { log } }}>
+		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, ui: { log } }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
