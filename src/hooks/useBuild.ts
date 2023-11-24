@@ -57,7 +57,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 						const newLine: [IPoint, IPoint] = [prev[prev.length - 1].position, position];
 						console.log(`lines: ${lines.map(line => line.map(pt => parsePoint(pt)))}, newline: ${newLine.map(pt => parsePoint(pt))}`);
 						for (const line of lines) {
-							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);						
+							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);
 							if (!isNaN(intersection.x) && intersection.x != newLine[0].x) {
 								throw new Error("Cannot place a dot that intersects a previously drawn line.");
 							}
@@ -151,6 +151,10 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		}
 	}, [buildDots, previewLines, pseudoCursor]);
 
+	useEffect(() => {
+		drawPreviewLines();
+	}, [buildDots, drawPreviewLines]);
+
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
@@ -164,19 +168,24 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		}
 	}, [enabled, pseudoCursor, setCursor, world]);
 
-	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
-		if (world && enabled && pseudoCursor && viewport) {
-			if (pseudoCursor.parent != world) { world.addChild(pseudoCursor); }
+	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
+		if (world && pseudoCursor) {
 			const localMouse = e.getLocalPosition(world);
 			const newPoint = snapEnabled ? new Point(
 				snap(localMouse.x, minCellSize),
 				snap(localMouse.y, minCellSize)
 			) : localMouse;
 			pseudoCursor.position.copyFrom(newPoint);
-			drawPlacementLine();
-			drawPreviewLines();
 		}
-	}, [world, enabled, pseudoCursor, viewport, snapEnabled, minCellSize, drawPlacementLine, drawPreviewLines]);
+	}, [minCellSize, pseudoCursor, snapEnabled, world]);
+
+	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
+		if (world && enabled && pseudoCursor && viewport) {
+			if (pseudoCursor.parent != world) { world.addChild(pseudoCursor); }
+			syncCursor(e);
+			drawPlacementLine();
+		}
+	}, [world, enabled, pseudoCursor, viewport, syncCursor, drawPlacementLine]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled && pseudoCursor && !cursorOverUI) {
@@ -236,6 +245,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 			world.on("pointerup", handleBuildPointerUp);
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
+			world.on("wheel", syncCursor);
 		}
 
 		return () => {
@@ -243,6 +253,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 			world?.removeListener("pointerup", handleBuildPointerUp);
 			world?.removeListener("pointermove", handleBuildPointerMove);
 			world?.removeListener("pointerupoutside", handleBuildPointerUp);
+			world?.removeListener("wheel", syncCursor);
 		};
-	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, world]);
+	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, syncCursor, world]);
 }
