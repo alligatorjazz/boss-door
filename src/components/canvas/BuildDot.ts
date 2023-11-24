@@ -35,14 +35,6 @@ export function BuildDot({ position, color, viewport, cursor }: BuildDotOptions)
 
 	graphics.eventMode = "static";
 
-	// debug dot
-	const debug = new Graphics()
-		.beginFill("magenta")
-		.drawCircle(0, 0, 4);
-	debug.pivot.set(4);
-
-	graphics.addChild(debug);
-
 	draw();
 	viewport.on("zoomed", draw);
 	graphics.on("destroyed", () => viewport.removeListener("zoomed", draw));

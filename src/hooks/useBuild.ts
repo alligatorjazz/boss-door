@@ -1,5 +1,5 @@
 import { Viewport } from "pixi-viewport";
-import { Container, FederatedPointerEvent, Graphics, Point } from "pixi.js";
+import { Container, FederatedPointerEvent, Graphics, LINE_JOIN, Point } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { Room } from "../components/canvas/Room";
@@ -78,15 +78,55 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 		world?.addChild(graphics);
 		return graphics;
 	}, [world]);
-	
+
+
 	const drawPlacementLine = useCallback(() => {
 		if (placementLine && buildDots && buildDots.length > 0 && pseudoCursor) {
-			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "red" });
-			placementLine.moveToPoint(buildDots[buildDots.length - 1].position);
-			placementLine.dashedLineToPoint(pseudoCursor.position, 10, 2);
-			// console.log(`drawing: (${startX}, ${startY}) -> (${endX}, ${endY})`);
+			const offset = pseudoCursor.getBounds();
+			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "teal", join: LINE_JOIN.ROUND });
+			placementLine.moveToPoint(buildDots[buildDots.length - 1].position.subtract({
+				x: offset.width / 2,
+				y: offset.height / 2
+			}));
+			placementLine.dashedLineToPoint(pseudoCursor.position.subtract({
+				x: offset.width / 2,
+				y: offset.height / 2
+			}), 10, 2);
+		} else {
+			placementLine.clear();
 		}
 	}, [buildDots, placementLine, pseudoCursor]);
+
+	const previewLines = useMemo(() => {
+		const graphics = world?.children.find(obj => obj.name === "previewLines") as ExtendedGraphics
+			?? new ExtendedGraphics();
+		graphics.clear();
+		graphics.name = "previewLines";
+		graphics.zIndex = 100;
+		world?.addChild(graphics);
+		return graphics;
+	}, [world]);
+
+	const drawPreviewLines = useCallback(() => {
+		if (buildDots && buildDots.length > 1 && pseudoCursor) {
+			const offset = pseudoCursor.getBounds();
+			buildDots.map((dot, index) => {
+				if (index < buildDots.length - 1) {
+					previewLines.lineStyle({ alignment: 0.5, width: 5, color: "skyblue", join: LINE_JOIN.ROUND });
+					previewLines.moveToPoint(dot.position.subtract({
+						x: offset.width / 2,
+						y: offset.height / 2
+					}));
+					previewLines.dashedLineToPoint(buildDots[index + 1].position.subtract({
+						x: offset.width / 2,
+						y: offset.height / 2
+					}), 10, 2);
+				}
+			});
+		} else {
+			previewLines.clear();
+		}
+	}, [buildDots, previewLines, pseudoCursor]);
 
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -96,7 +136,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 				if (pseudoCursor) {
 					pseudoCursor.visible = false;
 				}
-
+				
 			}
 		}
 	}, [enabled, pseudoCursor, setCursor, world]);
@@ -111,8 +151,9 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 			) : localMouse;
 			pseudoCursor.position.copyFrom(newPoint);
 			drawPlacementLine();
+			drawPreviewLines();
 		}
-	}, [world, enabled, pseudoCursor, viewport, snapEnabled, minCellSize, drawPlacementLine]);
+	}, [world, enabled, pseudoCursor, viewport, snapEnabled, minCellSize, drawPlacementLine, drawPreviewLines]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled && pseudoCursor && !cursorOverUI) {
@@ -120,6 +161,8 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 				if (buildDots && buildDots.length > 0) {
 					if (collisionTest(buildDots[0], pseudoCursor) && buildDots.length > 2) {
 						closeShape();
+						previewLines.clear();
+						placementLine.clear();
 					} else {
 						placeDot(pseudoCursor.position);
 					}
@@ -131,7 +174,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 			setCursor("none");
 			pseudoCursor.visible = true;
 		}
-	}, [world, enabled, pseudoCursor, cursorOverUI, setCursor, buildDots, closeShape, placeDot]);
+	}, [world, enabled, pseudoCursor, cursorOverUI, setCursor, buildDots, closeShape, previewLines, placementLine, placeDot]);
 
 	// key events
 	const bind = useBindings();
