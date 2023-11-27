@@ -1,4 +1,5 @@
 import { Drag, IDragOptions, IWheelOptions, Viewport, Wheel } from "pixi-viewport";
+import { IPointData } from "pixi.js";
 
 class ExtendedDrag extends Drag {
 	public wheel(event: WheelEvent): boolean {
@@ -8,7 +9,7 @@ class ExtendedDrag extends Drag {
 
 		if (this.options.wheel) {
 			// console.log("drag plugin: running wheel proc");
-			const wheel = this.parent.plugins.get("wheel", true) as ExtendedWheel;
+			const wheel = this.parent.plugins.get("wheel", true) as unknown as ExtendedWheel;
 
 			if (!wheel || ((!wheel.options.wheelZoom || !wheel.keyIsPressed) && !event.ctrlKey)) {
 				const step = event.deltaMode ? this.options.lineHeight : 1;
@@ -44,12 +45,24 @@ class ExtendedDrag extends Drag {
 
 class ExtendedWheel extends Wheel {
 	/** Flags whether the keys required to zoom are pressed currently. */
-	public keyIsPressed: boolean;
-	constructor(parent: Viewport, options: IWheelOptions = {}) {
+	public override keyIsPressed: boolean;
+	public readonly conditionalPinch: boolean;
+	constructor(parent: Viewport, options: IWheelOptions & { conditionalPinch?: boolean } = {}) {
 		super(parent, options);
+		this.conditionalPinch = options.conditionalPinch ?? false;
 		this.keyIsPressed = false;
 	}
 
+	public wheel(e: WheelEvent): boolean {
+		// enables separate control of pinch and wheel zoom
+		if (e.ctrlKey && this.options.trackpadPinch && (this.checkKeyPress() || !this.conditionalPinch)) {
+			// TODO: remove this hack that allows private method pinch to be accessed
+			this["pinch"](e);
+			return true;
+		} else {
+			return super.wheel(e);
+		}
+	}
 }
 
 export class ExtendedViewport extends Viewport {
