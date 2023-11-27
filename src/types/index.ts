@@ -1,5 +1,5 @@
 import { Viewport } from "pixi-viewport";
-import { Application, Container, DisplayObject, IApplicationOptions, ICanvas } from "pixi.js";
+import { Application, Container, DisplayObject, IApplicationOptions, ICanvas, IPointData } from "pixi.js";
 import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
 import { useNodes } from "../hooks/useNodes";
@@ -36,3 +36,18 @@ export type EditMode = "move" | "build";
 export type BuildActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
 
 export type Grid = ReturnType<typeof useGrid>;
+
+export type DungeonRoom = {
+	id: string;
+	points: IPointData;
+	paths: { points: [IPointData, IPointData], nodeId: string | null, linkedRoomId: string | null }[]
+	position: IPointData;
+}
+
+export type DungeonFloor = { id: string; name: string | null; rooms: DungeonRoom[] };
+
+export type Dungeon = {
+	id: string;
+	floors: DungeonFloor[];
+	orphanNodes: MapNode[];
+};

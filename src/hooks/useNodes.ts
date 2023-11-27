@@ -11,6 +11,7 @@ type RemoveOptions = { id: string };
 export function useNodes(world?: Container | null) {
 	const [nodes, setNodes] = useState<MapNode[]>([]);
 	const [objects, setObjects] = useState<DisplayObject[]>([]);
+	
 	const createNodeObject = useCallback((node: MapNode): DisplayObject => {
 		let obj: DisplayObject;
 		switch (node.type) {
