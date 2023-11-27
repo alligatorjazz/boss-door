@@ -12,7 +12,7 @@ import { Key } from "ts-key-enum";
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
-	const [mode, setMode] = useState<EditMode>("build");
+	const [mode, setMode] = useState<EditMode>("move");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 	const [debug, log] = useState<string | null>(null);
 
