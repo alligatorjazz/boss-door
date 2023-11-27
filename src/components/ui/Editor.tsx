@@ -5,21 +5,23 @@ import { useBuild } from "../../hooks/useBuild";
 import { useGrid } from "../../hooks/useGrid";
 import { useNodes } from "../../hooks/useNodes";
 import { useSelect } from "../../hooks/useSelect";
-import { EditMode } from "../../types";
+import { EditMode, WithoutBuildActions } from "../../types";
+import { useRooms } from "../../hooks/useRooms";
 
 interface Props {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	setCursor: (mode: string) => void;
-	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">
+	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>
 	mode: EditMode;
 	windowRef: MutableRefObject<HTMLDivElement | null>;
+	rooms: ReturnType<typeof useRooms>;
 }
-export function Editor({ world, viewport, setCursor, nodes, mode, windowRef }: Props) {
+export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, rooms }: Props) {
 	const baseCellSize = 16;
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
 	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor });
-	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize });
+	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
 
 	// handling mode changes
 	useEffect(() => {

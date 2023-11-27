@@ -9,7 +9,7 @@ type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>;
 	setCursor: (mode: string) => void;
 } 
 

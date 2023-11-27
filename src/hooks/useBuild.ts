@@ -3,24 +3,26 @@ import { segmentIntersection } from "@pixi/math-extras";
 import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
-import { Room } from "../components/canvas/Room";
 import { collisionTest, parsePoint, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 import { ExtendedGraphics } from "pixi-extended-graphics";
-import { GenericDot } from "../components/canvas/GenericDot";
+import { WithoutBuildActions } from "../types";
+import { useRooms } from "./useRooms";
 
 type UseBuildOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: Omit<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>;
 	minCellSize: number;
+	rooms: ReturnType<typeof useRooms>;
 	setCursor: (mode: string) => void;
 }
 
-export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: UseBuildOptions) {
+// TODO: refactor with useRoom
+export function useBuild({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
 	// TODO: connect to useGrid and enable adaptive snap
@@ -55,7 +57,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 							}
 						});
 						const newLine: [IPoint, IPoint] = [prev[prev.length - 1].position, position];
-						console.log(`lines: ${lines.map(line => line.map(pt => parsePoint(pt)))}, newline: ${newLine.map(pt => parsePoint(pt))}`);
+						// console.log(`lines: ${lines.map(line => line.map(pt => parsePoint(pt)))}, newline: ${newLine.map(pt => parsePoint(pt))}`);
 						for (const line of lines) {
 							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);
 							if (!isNaN(intersection.x) && intersection.x != newLine[0].x) {
@@ -78,19 +80,20 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor }: U
 
 	const closeShape = useCallback(() => {
 		if (buildDots && world) {
-			const room = Room(buildDots.map(dot => {
-				const { pivot, position } = dot;
-				dot.destroy();
-				return new Point(
-					position.x - pivot.x,
-					position.y - pivot.y
-				);
-			}));
-
-			world.addChild(room);
+			rooms.add({
+				points: buildDots.map(dot => {
+					const { pivot, position } = dot;
+					dot.destroy();
+					return new Point(
+						position.x - pivot.x,
+						position.y - pivot.y
+					);
+				}),
+				position: { x: 0, y: 0 }
+			});
 			setBuildDots(null);
 		}
-	}, [buildDots, world]);
+	}, [buildDots, rooms, world]);
 
 	const placementLine = useMemo(() => {
 		const graphics = world?.children.find(obj => obj.name === "placementLine") as ExtendedGraphics

@@ -24,7 +24,7 @@ export function Edit() {
 		};
 	}, []);
 
-	const { draw, viewport, world, setCursor, nodes } = useView({
+	const { draw, viewport, world, setCursor, nodes, rooms } = useView({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -59,7 +59,7 @@ export function Edit() {
 	return (
 		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, ui: { log } }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
-				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef }} />
+				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef, rooms }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<div ref={uiRef} className="h-full flex flex-col">
 						<ModeSelect className="flex-1" />

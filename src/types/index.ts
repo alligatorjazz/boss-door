@@ -4,7 +4,6 @@ import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
 import { useNodes } from "../hooks/useNodes";
 import { MapNode } from "../lib/nodes";
-import { number } from "zod";
 
 export type Empty = Record<string, never>
 
@@ -34,12 +33,13 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 
 export type EditMode = "move" | "build";
 export type BuildActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+export type WithoutBuildActions<T> = Omit<T, "add" | "remove" | "removeAll">;
 
 export type Grid = ReturnType<typeof useGrid>;
 
 export type DungeonRoom = {
 	id: string;
-	points: IPointData;
+	points: IPointData[];
 	paths: { points: [IPointData, IPointData], nodeId: string | null, linkedRoomId: string | null }[]
 	position: IPointData;
 }
@@ -51,3 +51,4 @@ export type Dungeon = {
 	floors: DungeonFloor[];
 	orphanNodes: MapNode[];
 };
+

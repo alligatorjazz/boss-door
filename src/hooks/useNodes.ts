@@ -105,10 +105,12 @@ export function useNodes(world?: Container | null) {
 			.find(cb);
 	}, [nodes, objects]);
 
+	
 	const add = useCallback(<T extends MapNode["type"]>(type: T, options: AddOptions) => {
 		const node = createNode({ type, ...options }) as MapNodes<T>;
 		setNodes(prevNodes => [...prevNodes, node]);
 		return {
+			// TODO: refactor to check for existing object before creating + adding a new one with the getter
 			node, get obj() {
 				const obj = createNodeObject(node);
 				setObjects(prev => [...prev, obj]);

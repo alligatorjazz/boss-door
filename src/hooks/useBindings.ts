@@ -49,7 +49,7 @@ export function useBindings() {
 				// 2: no matches, but event is firing for keyup
 				(!key && !modifiersMatch(e, modifiers) && e.type == "keyup")
 			) {
-				console.log("exec binding: ", { key, modifiers, ev: e.type });
+				// console.log("exec binding: ", { key, modifiers, ev: e.type });
 				action(e);
 			}
 		};
@@ -60,7 +60,7 @@ export function useBindings() {
 			const action = cmdBindings[cmd as Command];
 			if (action) {
 				const { key, modifiers, onkey } = bindings[cmd as Command];
-				console.log("loading bindings: ", { key, modifiers, onkey });
+				// console.log("loading bindings: ", { key, modifiers, onkey });
 				const event = onkey ?? "down";
 				switch (event) {
 					case "up":
@@ -75,7 +75,7 @@ export function useBindings() {
 		}
 
 		return () => {
-			console.log("removing bindings...");
+			// console.log("removing bindings...");
 			for (const cmd in cmdBindings) {
 				const handler = cmdBindings[cmd as Command];
 				if (handler) {
