@@ -23,6 +23,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [selected, setSelected] = useState<(NodeHandle | RoomHandle)[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
+	const [rotateOrigin, setRotateOrigin] = useState<Point | null>(null);
 
 	useEffect(() => {
 		if (enabled && world) {
@@ -52,6 +53,13 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 		const prev = world?.children
 			.find(child => child.name === "selectedRect" && child instanceof Graphics) as Graphics | undefined;
 		const graphics = prev ?? new Graphics();
+		// rotation handle
+		const rotateHandle = new Graphics()
+			.beginFill("white")
+			.drawCircle(0, 0, 4);
+
+		graphics.addChild(rotateHandle);
+
 		graphics.name = "selectedRect";
 		graphics.zIndex = 100;
 		if (!prev) { world?.addChild(graphics); }
@@ -122,6 +130,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 				if (beginMovingSelection) {
 					setMoveOrigin(localMousePosition);
 				} else {
+					setSelected([]);
 					// begins selection
 					setSelectOrigin(localMousePosition);
 				}
@@ -136,7 +145,6 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 
 	const handleSelectPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
-
 			const pointer = e.getLocalPosition(world);
 			if (selectOrigin) {
 				selectorRect.clear();

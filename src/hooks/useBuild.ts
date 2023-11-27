@@ -8,7 +8,7 @@ import { collisionTest, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
 import { WithoutBuildActions } from "../types";
 import { useBindings } from "./useBindings";
-import { useNodes } from "./useNodes";	
+import { useNodes } from "./useNodes";
 import { useRooms } from "./useRooms";
 
 type UseBuildOptions = {
@@ -39,7 +39,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 		if (viewport && world) {
 			const graphics = world.children.find(obj => obj.name === "pseudoCursor")
 				?? BuildDot({ position: new Point(0, 0), viewport, cursor: true });
-			return graphics;
+			return graphics as Graphics;
 		}
 	}, [viewport, world]);
 
@@ -213,10 +213,14 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
-		bind("escape", () => setBuildDots(null));
+		bind("escape", () => { 
+			setBuildDots(null);
+			previewLines.clear();
+			placementLine.clear();
+		});
 		bind("snap-start", () => setSnapEnabled(true));
 		bind("snap-end", () => setSnapEnabled(false));
-	}, [bind]);
+	}, [bind, placementLine, previewLines]);
 
 	// deletes build dots on mode change
 	useEffect(() => {
@@ -248,6 +252,11 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
 			world.on("wheel", syncCursor);
+			pseudoCursor?.scale.set(1);
+		} else {
+			pseudoCursor?.scale.set(0);
+			previewLines.clear();
+			placementLine.clear();
 		}
 
 		return () => {
