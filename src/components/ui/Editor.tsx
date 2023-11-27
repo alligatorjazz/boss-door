@@ -20,7 +20,7 @@ interface Props {
 export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, rooms }: Props) {
 	const baseCellSize = 16;
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
-	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor });
+	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor, rooms });
 	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
 
 	// handling mode changes

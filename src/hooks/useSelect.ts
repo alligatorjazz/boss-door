@@ -4,20 +4,24 @@ import { NodeHandle } from "../lib/nodes";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
 import { useBindings } from "./useBindings";
+import { WithoutBuildActions } from "../types";
+import { useRooms } from "./useRooms";
+import { RoomHandle } from "../lib/rooms";
 
 type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
 	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>;
+	rooms: WithoutBuildActions<ReturnType<typeof useRooms>>;
 	setCursor: (mode: string) => void;
-} 
+}
 
 const selectColor = "#0253f5";
-export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSelectOptions) {
+export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }: UseSelectOptions) {
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
-	const [selected, setSelected] = useState<NodeHandle[]>([]);
+	const [selected, setSelected] = useState<(NodeHandle | RoomHandle)[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
 
 	useEffect(() => {
@@ -181,32 +185,41 @@ export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSel
 	// "closes" selection, adding objects under the selectorRect to the list of selected nodes
 	useEffect(() => {
 		if (selectOrigin && selectTerminus && world) {
-			const filteredNodes = nodes
-				.filter(({ obj }) => {
+			const newSelections = [
+				...nodes.filter(({ obj }) => {
 					const global = obj.getGlobalPosition();
 					const comparePoint = new Point(
 						global.x - obj.pivot.x,
 						global.y - obj.pivot.y
 					);
 					return obj && selectorRect.containsPoint(comparePoint);
-				});
-
+				}),
+				...rooms.filter(({ obj }) => {
+					const global = obj.getGlobalPosition();
+					const comparePoint = new Point(
+						global.x - obj.pivot.x,
+						global.y - obj.pivot.y
+					);
+					return obj && selectorRect.containsPoint(comparePoint);
+				})
+			];
+			
 			setSelected(() => {
 				// TODO: add support for alt-select
 				setSelectOrigin(null);
 				setSelectTerminus(null);
-				return filteredNodes;
+				return newSelections;
 			});
 		} else {
 			selectorRect.clear();
 			selectedRect.clear();
 		}
-	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selectedRect]);
+	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selectedRect, rooms]);
 
 	// draws selection outlines around selected objects
 	useEffect(() => {
-		if (selected.length > 0) { 
-			outlineSelections(); 
+		if (selected.length > 0) {
+			outlineSelections();
 		} else {
 			selectedRect.clear();
 		}
@@ -219,7 +232,7 @@ export function useSelect({ world, enabled, viewport, nodes, setCursor }: UseSel
 		bind("escape", () => setSelected([]));
 	}, [bind]);
 
-	
+
 	// registers event listeners
 	useEffect(() => {
 		if (world && enabled) {

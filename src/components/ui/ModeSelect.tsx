@@ -1,6 +1,6 @@
 import { HTMLAttributes, useContext } from "react";
 import Pointer from "../../assets/feather/mouse-pointer.svg?react";
-import Edit from "../../assets/feather/edit-3.svg?react";
+import Hammer from "../../assets/iconoir/hammer.svg?react";
 import { EditMode } from "../../types";
 import { DungeonContext } from "../../routes/Edit/Index.lib";
 
@@ -37,7 +37,7 @@ export function ModeSelect({ className, ...props }: Props) {
 				<Pointer stroke="white" width={size} height={size} />
 			</ModeButton>
 			<ModeButton mode="build">
-				<Edit stroke="white" width={size} height={size} />
+				<Hammer stroke="white" width={size} height={size} />
 			</ModeButton>
 		</section>
 	);

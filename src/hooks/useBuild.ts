@@ -1,14 +1,14 @@
-import { Viewport } from "pixi-viewport";
 import { segmentIntersection } from "@pixi/math-extras";
+import { ExtendedGraphics } from "pixi-extended-graphics";
+import { Viewport } from "pixi-viewport";
 import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
-import { collisionTest, parsePoint, snap } from "../lib";
+import { collisionTest, snap } from "../lib";
 import { DungeonContext } from "../routes/Edit/Index.lib";
-import { useBindings } from "./useBindings";
-import { useNodes } from "./useNodes";
-import { ExtendedGraphics } from "pixi-extended-graphics";
 import { WithoutBuildActions } from "../types";
+import { useBindings } from "./useBindings";
+import { useNodes } from "./useNodes";	
 import { useRooms } from "./useRooms";
 
 type UseBuildOptions = {
