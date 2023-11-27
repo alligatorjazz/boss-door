@@ -78,7 +78,7 @@ export function useRooms(world?: Container | null) {
 			.find(cb);
 	}, [rooms, objects]);
 
-	const add = useCallback((params: Pick<DungeonRoom, "points" | "position">) => {
+	const add = useCallback((params: Pick<DungeonRoom, "points">) => {
 		const room = createRoom(params);
 		setRooms(prevNodes => [...prevNodes, room]);
 		return {

@@ -88,8 +88,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 						position.x - pivot.x,
 						position.y - pivot.y
 					);
-				}),
-				position: { x: 0, y: 0 }
+				})
 			});
 			setBuildDots(null);
 		}

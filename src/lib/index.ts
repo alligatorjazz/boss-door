@@ -1,4 +1,4 @@
-import { Container, DisplayObject, IPoint, Point} from "pixi.js";
+import { Container, DisplayObject, IPoint, Point } from "pixi.js";
 import { MutableRefObject, ReactElement } from "react";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
@@ -83,4 +83,19 @@ export function min(array: number[]) {
 	});
 
 	return min;
+}
+
+export function max(array: number[]) {
+	let max = array[0];
+	array.map((value) => {
+		if (!max) {
+			max = value;
+		}
+
+		if (max < value) {
+			max = value;
+		}
+	});
+
+	return max;
 }
