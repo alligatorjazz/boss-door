@@ -1,28 +1,27 @@
 import { segmentIntersection } from "@pixi/math-extras";
 import { ExtendedGraphics } from "pixi-extended-graphics";
 import { Viewport } from "pixi-viewport";
-import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point, Sprite } from "pixi.js";
+import { Container, FederatedPointerEvent, Graphics, IPoint, IPointData, LINE_JOIN, Point, Sprite } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
-import { collisionTest, snap } from "../lib";
+import { Pen } from "../components/canvas/Pen";
+import { collisionTest, interpolatePoint, snapPointToArray } from "../lib";
+import { DungeonContext } from "../routes/Edit.lib";
 import { WithoutDrawActions } from "../types";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 import { useRooms } from "./useRooms";
-import { DungeonContext } from "../routes/Edit.lib";
-import { Pen } from "../components/canvas/Pen";
 
 type UseBuildOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
 	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
-	minCellSize: number;
 	rooms: ReturnType<typeof useRooms>;
 	setCursor: (mode: string) => void;
 }
 
-export function usePaths({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
+export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
 	const { cursorOverUI } = useContext(DungeonContext);
@@ -93,14 +92,14 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "teal", join: LINE_JOIN.ROUND });
 			placementLine.moveToPoint(buildDots[buildDots.length - 1].position
 				.subtract({
-					x: dotOffset.width /2,
-					y: dotOffset.height /2
+					x: dotOffset.width / 2,
+					y: dotOffset.height / 2
 				})
 			);
 			placementLine.dashedLineToPoint(penCursor.position
 				.subtract({
-					x: dotOffset.width /2,
-					y: dotOffset.height /2
+					x: dotOffset.width / 2,
+					y: dotOffset.height / 2
 				}), 10, 2);
 		} else {
 			placementLine.clear();
@@ -121,15 +120,43 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 	}, [enabled, penCursor, setCursor, world]);
 
 	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
+		// TODO: implement snap-to-object
 		if (world && penCursor) {
 			const localMouse = e.getLocalPosition(world);
-			const newPoint = snapEnabled ? new Point(
-				snap(localMouse.x, minCellSize),
-				snap(localMouse.y, minCellSize)
-			) : localMouse;
-			penCursor.position.copyFrom(newPoint);
+			if (snapEnabled) {
+				// get a list of all snap points: 
+				// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
+				const snapPoints: IPointData[] = []; 
+				rooms.map(({ room, obj }) => {
+					const edgePoints: IPointData[] = [];
+					const worldPoints = room.points.map(pt => obj.position.add(pt));
+					worldPoints.map((current, index) => {
+						if (index < room.points.length - 1) {
+							const next = worldPoints[index + 1];
+							edgePoints.push(
+								interpolatePoint(current, next, 0.33),
+								interpolatePoint(current, next, 0.50),
+								interpolatePoint(current, next, 0.66),
+								interpolatePoint(current, next, 0.75),
+							);
+						}
+					});
+
+					snapPoints.push(...worldPoints);
+					snapPoints.push(...edgePoints);
+					return null;
+				});
+				const closestSnap = snapPointToArray(localMouse, snapPoints);
+				if (closestSnap.distance > 50) {
+					penCursor.position.copyFrom(localMouse);
+				} else {
+					penCursor.position.copyFrom(closestSnap.point);
+				}
+			} else {
+				penCursor.position.copyFrom(localMouse);
+			}
 		}
-	}, [minCellSize, penCursor, snapEnabled, world]);
+	}, [penCursor, rooms, snapEnabled, world]);
 
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled && penCursor && viewport) {

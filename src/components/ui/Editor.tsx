@@ -23,7 +23,7 @@ export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, roo
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
 	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor, rooms });
 	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
-	usePaths({ world, nodes, enabled: mode === "path", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
+	usePaths({ world, nodes, enabled: mode === "path", viewport, setCursor, rooms });
 
 	// handling mode changes
 	useEffect(() => {

@@ -1,4 +1,4 @@
-import { Container, DisplayObject, IPoint, Point } from "pixi.js";
+import { Container, DisplayObject, IPoint, IPointData, Point } from "pixi.js";
 import { MutableRefObject, ReactElement } from "react";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
@@ -70,6 +70,32 @@ export function snapToArray(x: number, arr: number[]) {
 
 	return target;
 }
+
+export function snapPointToArray(pt: IPointData, arr: IPointData[]) {
+	let lowestDistance = Number.MAX_SAFE_INTEGER;
+	let target = pt;
+	arr.map(dest => {
+		const distance = Math.sqrt((dest.x - pt.x) ** 2 + (dest.y - pt.y) ** 2);
+		if (Math.abs(distance) < lowestDistance) {
+			lowestDistance = distance;
+			target = dest;
+		}
+	});
+
+	return { point: target, distance: lowestDistance };
+}
+
+export function interpolatePoint(p1: IPointData, p2: IPointData, t: number): IPointData {
+	if (t < 0 || t > 1) {
+		throw new Error("Parameter 't' must be between 0 and 1 inclusive.");
+	}
+
+	const x = p1.x + (p2.x - p1.x) * t;
+	const y = p1.y + (p2.y - p1.y) * t;
+
+	return { x, y };
+}
+
 export function min(array: number[]) {
 	let min = array[0];
 	array.map((value) => {
