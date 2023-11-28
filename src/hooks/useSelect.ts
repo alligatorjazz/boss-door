@@ -23,7 +23,6 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [selected, setSelected] = useState<(NodeHandle | RoomHandle)[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
-	const [rotateOrigin, setRotateOrigin] = useState<Point | null>(null);
 
 	useEffect(() => {
 		if (enabled && world) {
@@ -53,6 +52,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 		const prev = world?.children
 			.find(child => child.name === "selectedRect" && child instanceof Graphics) as Graphics | undefined;
 		const graphics = prev ?? new Graphics();
+
 		graphics.name = "selectedRect";
 		graphics.zIndex = 100;
 		if (!prev) { world?.addChild(graphics); }
