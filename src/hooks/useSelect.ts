@@ -59,16 +59,6 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 		return graphics;
 	}, [world]);
 
-	const rotationHandle = useMemo(() => {
-		const prev = world?.children
-			.find(child => child.name === "rotationHandle" && child instanceof Graphics) as Graphics | undefined;
-		const graphics = prev ?? new Graphics();
-		graphics.name = "rotationHandle";
-		graphics.zIndex = 100;
-		if (!prev) { world?.addChild(graphics); }
-		return graphics;
-	}, [world]);
-
 	const outlineSelections = useCallback(() => {
 		if (selected) {
 			selectedRect.clear();
@@ -120,26 +110,8 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 						superRect.height
 					);
 			}
-			// TODO: fix handle being slightly offcenter
-			const yOffset = 40 / (viewport?.scale.x ?? 1);
-			const handleSize = 6 / (viewport?.scale.x ?? 1);
-			const selectionBounds = selectedRect.getLocalBounds();
-			const handleLocation = new Point(
-				selectionBounds.left + (selectionBounds.width / 2),
-				selectionBounds.top - yOffset
-			);
-
-			selectedRect
-				.moveTo(handleLocation.x, handleLocation.y)
-				.lineTo(handleLocation.x, handleLocation.y + yOffset + 2);
-			// draw rotation handle
-			
-			rotationHandle
-				.clear()
-				.beginFill("red")
-				.drawCircle(handleLocation.x, handleLocation.y, handleSize);
 		}
-	}, [rotationHandle, selected, selectedRect, viewport?.scale.x, world]);
+	}, [selected, selectedRect, world]);
 
 	// event handlers for cursors and select
 	const handleSelectPointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -156,7 +128,6 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 					setSelected([]);
 					// begins selection
 					setSelectOrigin(localMousePosition);
-					rotationHandle.clear();
 				}
 			}
 
@@ -165,7 +136,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 			}
 		}
 
-	}, [enabled, rotationHandle, selectedRect, setCursor, world]);
+	}, [enabled, selectedRect, setCursor, world]);
 
 	const handleSelectPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {

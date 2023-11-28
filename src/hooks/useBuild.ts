@@ -265,5 +265,5 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 			world?.removeListener("pointerupoutside", handleBuildPointerUp);
 			world?.removeListener("wheel", syncCursor);
 		};
-	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, syncCursor, world]);
+	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, placementLine, previewLines, pseudoCursor?.scale, syncCursor, world]);
 }

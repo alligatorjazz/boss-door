@@ -1,12 +1,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ModeSelect } from "../../components/ui/ModeSelect";
-import { EditMode } from "../../types";
-import { DungeonContext } from "./Index.lib";
-import { useView } from "../../hooks/useView";
-import { Editor } from "../../components/ui/Editor";
-import { KeyBindings } from "../../types/keys";
 import { Key } from "ts-key-enum";
+import { Editor } from "../../components/ui/Editor";
+import { ModeSelect } from "../../components/ui/ModeSelect";
+import { useCanvas } from "../../hooks/useCanvas";
+import { useNodes } from "../../hooks/useNodes";
+import { useRooms } from "../../hooks/useRooms";
+import { BuildActions, EditMode } from "../../types";
+import { KeyBindings } from "../../types/keys";
+import { DungeonContext } from "./Index.lib";
 
 
 export function Edit() {
@@ -24,7 +26,7 @@ export function Edit() {
 		};
 	}, []);
 
-	const { draw, viewport, world, setCursor, nodes, rooms } = useView({
+	const { viewport, world, setCursor } = useCanvas({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -33,6 +35,14 @@ export function Edit() {
 		backgroundColor: "slategray",
 		antialias: true
 	});
+	const { add, remove, removeAll, ...nodes } = useNodes(world);
+	const rooms = useRooms(world);
+
+	const draw = useCallback((cb: (actions: BuildActions) => void) => {
+		if (world) {
+			cb({ add, remove, removeAll });
+		}
+	}, [add, remove, removeAll, world]);
 
 
 	const capturePointer = useCallback((element: HTMLElement) => {
