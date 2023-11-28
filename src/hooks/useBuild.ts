@@ -21,7 +21,6 @@ type UseBuildOptions = {
 	setCursor: (mode: string) => void;
 }
 
-// TODO: refactor with useRoom
 export function useBuild({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
