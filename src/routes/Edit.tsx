@@ -62,13 +62,15 @@ export function Edit() {
 		// 	}
 		// });
 		build(({ add }) => {
-			const points = [];
-			for (let i = 0; i < 8; i++) {
-				const r = (n: number) => Math.random() > 0.5 ?
-					-n * Math.random() : n * Math.random();
-				points.push({ x: r(100), y: r(100) });
-			}
-			add({ points });
+			add({
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 0, y: 100 },
+					{ x: 100, y: 100 },
+					{ x: 100, y: 0 },
+					{ x: 0, y: 0 }
+				]
+			});
 		});
 	}, [build]);
 
