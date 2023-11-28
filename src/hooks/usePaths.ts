@@ -22,6 +22,7 @@ type UseBuildOptions = {
 }
 
 export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuildOptions) {
+	// TODO: adjust for erroneous pencursor position / point placement
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
 	const { cursorOverUI } = useContext(DungeonContext);
@@ -29,7 +30,7 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 	// disables cursor so pen-cursor can be enabled
 	useEffect(() => {
 		if (enabled && world) {
-			// setCursor("none");
+			setCursor("none");
 		}
 	}, [enabled, setCursor, world]);
 
@@ -88,19 +89,11 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 
 	const drawPlacementLine = useCallback(() => {
 		if (placementLine && buildDots && buildDots.length > 0 && penCursor) {
-			const dotOffset = buildDots[0].getLocalBounds();
-			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "teal", join: LINE_JOIN.ROUND });
-			placementLine.moveToPoint(buildDots[buildDots.length - 1].position
-				.subtract({
-					x: dotOffset.width / 2,
-					y: dotOffset.height / 2
-				})
-			);
-			placementLine.dashedLineToPoint(penCursor.position
-				.subtract({
-					x: dotOffset.width / 2,
-					y: dotOffset.height / 2
-				}), 10, 2);
+			const dotBounds = buildDots[0].getLocalBounds();
+			const offset = new Point(dotBounds.width / 2, dotBounds.width / 2);
+			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "ghostwhite", join: LINE_JOIN.ROUND });
+			placementLine.moveToPoint(buildDots[buildDots.length - 1].position.subtract(offset));
+			placementLine.dashedLineToPoint(penCursor.position, 10, 2);
 		} else {
 			placementLine.clear();
 		}
@@ -126,7 +119,7 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 			if (snapEnabled) {
 				// get a list of all snap points: 
 				// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
-				const snapPoints: IPointData[] = []; 
+				const snapPoints: IPointData[] = [];
 				rooms.map(({ room, obj }) => {
 					const edgePoints: IPointData[] = [];
 					const worldPoints = room.points.map(pt => obj.position.add(pt));
@@ -167,23 +160,24 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 	}, [world, enabled, penCursor, viewport, syncCursor, drawPlacementLine]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
-		if (world && enabled && penCursor && !cursorOverUI) {
+		if (world && viewport && enabled && penCursor && !cursorOverUI) {
+			const referenceRadius = 8 * viewport.scale.x;
 			if (e.button === 0) {
 				if (buildDots && buildDots.length > 0) {
 					if (collisionTest(buildDots[0], penCursor) && buildDots.length > 2) {
 						placementLine.clear();
 					} else {
-						placeDot(penCursor.position);
+						placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)));
 					}
 				} else {
-					placeDot(penCursor.position, "lightblue");
+					placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)));
 				}
 			}
 
-			setCursor("none");
+			// setCursor("none");
 			penCursor.visible = true;
 		}
-	}, [world, enabled, penCursor, cursorOverUI, setCursor, buildDots, placementLine, placeDot]);
+	}, [world, viewport, enabled, penCursor, cursorOverUI, buildDots, placementLine, placeDot]);
 
 	// key events
 	const bind = useBindings();

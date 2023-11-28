@@ -4,16 +4,15 @@ import { Graphics, Point, Rectangle } from "pixi.js";
 type BuildDotOptions = {
 	position: Point,
 	color?: string,
-	viewport: Viewport
-	cursor?: boolean
+	viewport?: Viewport
 };
 
 const radius = 8;
-export function BuildDot({ position, color, viewport, cursor }: BuildDotOptions) {
+export function BuildDot({ position, color, viewport }: BuildDotOptions) {
 	const graphics = new Graphics();
 	const draw = () => {
 		if (graphics) {
-			const scaledRadius = radius / viewport.scale.x;
+			const scaledRadius = radius / (viewport?.scale.x?? 1);
 			graphics.pivot.set(radius);
 			graphics
 				.clear()
@@ -27,17 +26,13 @@ export function BuildDot({ position, color, viewport, cursor }: BuildDotOptions)
 			graphics.hitArea = hitArea;
 		}
 	};
-
-	cursor ?
-		graphics.name = "pseudoCursor" :
-		graphics.name = "buildDot";
 	graphics.position.copyFrom(position);
 
 	graphics.eventMode = "static";
 
 	draw();
-	viewport.on("zoomed", draw);
-	graphics.on("destroyed", () => viewport.removeListener("zoomed", draw));
+	viewport?.on("zoomed", draw);
+	graphics.on("destroyed", () => viewport?.removeListener("zoomed", draw));
 
 	return graphics;
 }

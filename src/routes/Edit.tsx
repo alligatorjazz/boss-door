@@ -12,7 +12,7 @@ import { DungeonContext } from "./Edit.lib";
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
-	const [mode, setMode] = useState<EditMode>("move");
+	const [mode, setMode] = useState<EditMode>("path");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 	const [debug, log] = useState<string | null>(null);
 

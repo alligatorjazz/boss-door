@@ -37,7 +37,8 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 	const pseudoCursor = useMemo(() => {
 		if (viewport && world) {
 			const graphics = world.children.find(obj => obj.name === "pseudoCursor")
-				?? BuildDot({ position: new Point(0, 0), viewport, cursor: true });
+				?? BuildDot({ position: new Point(0, 0), viewport });
+			graphics.name = "pseudoCursor";
 			return graphics as Graphics;
 		}
 	}, [viewport, world]);
@@ -45,6 +46,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 	const placeDot = useCallback((position: Point, color?: string) => {
 		if (world && viewport) {
 			const graphics = BuildDot({ position, color, viewport });
+			graphics.name = "buildDot";
 			setBuildDots(prev => {
 				try {
 					if (prev) {
@@ -212,7 +214,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
-		bind("escape", () => { 
+		bind("escape", () => {
 			setBuildDots(null);
 			previewLines.clear();
 			placementLine.clear();
