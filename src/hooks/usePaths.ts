@@ -24,7 +24,7 @@ type UseBuildOptions = {
 export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuildOptions) {
 	// TODO: adjust for erroneous pencursor position / point placement
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
-	const [snapEnabled, setSnapEnabled] = useState(false);
+	const [snapEnabled] = useState(true);
 	const { cursorOverUI } = useContext(DungeonContext);
 
 	// disables cursor so pen-cursor can be enabled
@@ -186,8 +186,6 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 			setBuildDots(null);
 			placementLine.clear();
 		});
-		bind("snap-start", () => setSnapEnabled(true));
-		bind("snap-end", () => setSnapEnabled(false));
 	}, [bind, placementLine]);
 
 	// deletes build dots on mode change
