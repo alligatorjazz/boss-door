@@ -23,8 +23,9 @@ type UseBuildOptions = {
 
 export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuildOptions) {
 	// TODO: adjust for erroneous pencursor position / point placement
-	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
+	const [pathDots, setPathDots] = useState<Graphics[] | null>();
 	const [snapEnabled] = useState(true);
+	const [snapPoints, setSnapPoints] = useState<IPointData[]>([]);
 	const { cursorOverUI } = useContext(DungeonContext);
 
 	// disables cursor so pen-cursor can be enabled
@@ -45,7 +46,8 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 	const placeDot = useCallback((position: Point, color?: string) => {
 		if (world && viewport) {
 			const graphics = BuildDot({ position, color, viewport });
-			setBuildDots(prev => {
+			graphics.name = "pathDot";
+			setPathDots(prev => {
 				try {
 					if (prev) {
 						// disallow intersection
@@ -88,16 +90,77 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 
 
 	const drawPlacementLine = useCallback(() => {
-		if (placementLine && buildDots && buildDots.length > 0 && penCursor) {
-			const dotBounds = buildDots[0].getLocalBounds();
+		if (placementLine && pathDots && pathDots.length > 0 && penCursor) {
+			const dotBounds = pathDots[0].getLocalBounds();
 			const offset = new Point(dotBounds.width / 2, dotBounds.width / 2);
 			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "ghostwhite", join: LINE_JOIN.ROUND });
-			placementLine.moveToPoint(buildDots[buildDots.length - 1].position.subtract(offset));
+			placementLine.moveToPoint(pathDots[pathDots.length - 1].position.subtract(offset));
 			placementLine.dashedLineToPoint(penCursor.position, 10, 2);
 		} else {
 			placementLine.clear();
 		}
-	}, [buildDots, placementLine, penCursor]);
+	}, [pathDots, placementLine, penCursor]);
+	// recalculates valid snap points based on number of rooms 
+	useEffect(() => {
+		setSnapPoints(() => {
+			// get a list of all snap points: 
+			// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
+			const points: IPointData[] = [];
+			rooms.map(({ room, obj }) => {
+				const edgePoints: IPointData[] = [];
+				const worldPoints = room.points.map(pt => obj.position.add(pt));
+				worldPoints.map((current, index) => {
+					if (index < room.points.length - 1) {
+						const next = worldPoints[index + 1];
+						edgePoints.push(
+							interpolatePoint(current, next, 0.33),
+							interpolatePoint(current, next, 0.50),
+							interpolatePoint(current, next, 0.66),
+							interpolatePoint(current, next, 0.75),
+						);
+					}
+				});
+
+				points.push(...worldPoints);
+				points.push(...edgePoints);
+				return null;
+			});
+			return points;
+		});
+	}, [rooms]);
+
+	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
+		// TODO: implement snap-to-object
+		if (world && penCursor) {
+			const localMouse = e.getLocalPosition(world);
+			if (snapEnabled) {
+				const closestSnap = snapPointToArray(localMouse, snapPoints);
+				if (closestSnap.distance > 50) {
+					penCursor.position.copyFrom(localMouse);
+				} else {
+					penCursor.position.copyFrom(closestSnap.point);
+				}
+			} else {
+				penCursor.position.copyFrom(localMouse);
+			}
+		}
+	}, [penCursor, snapEnabled, snapPoints, world]);
+
+	// "closes" path, adding permanent line to world
+	useEffect(() => {
+		if (pathDots && pathDots.length == 2 && world && viewport) {
+			const referenceRadius = 8 * viewport.scale.x;
+			const dot1 = pathDots[0];
+			const dot2 = pathDots[1];
+			const newPath = new ExtendedGraphics()
+				.lineStyle({ alignment: 0.5, width: 4, color: "black" })
+				.moveToPoint(dot1.position.subtract({ x: referenceRadius, y: referenceRadius }))
+				.lineToPoint(dot2.position.subtract({ x: referenceRadius, y: referenceRadius }));
+			console.log(newPath);
+			world.addChild(newPath);
+			setPathDots(null);
+		}
+	}, [world, pathDots, viewport]);
 
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -112,45 +175,6 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 		}
 	}, [enabled, penCursor, setCursor, world]);
 
-	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
-		// TODO: implement snap-to-object
-		if (world && penCursor) {
-			const localMouse = e.getLocalPosition(world);
-			if (snapEnabled) {
-				// get a list of all snap points: 
-				// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
-				const snapPoints: IPointData[] = [];
-				rooms.map(({ room, obj }) => {
-					const edgePoints: IPointData[] = [];
-					const worldPoints = room.points.map(pt => obj.position.add(pt));
-					worldPoints.map((current, index) => {
-						if (index < room.points.length - 1) {
-							const next = worldPoints[index + 1];
-							edgePoints.push(
-								interpolatePoint(current, next, 0.33),
-								interpolatePoint(current, next, 0.50),
-								interpolatePoint(current, next, 0.66),
-								interpolatePoint(current, next, 0.75),
-							);
-						}
-					});
-
-					snapPoints.push(...worldPoints);
-					snapPoints.push(...edgePoints);
-					return null;
-				});
-				const closestSnap = snapPointToArray(localMouse, snapPoints);
-				if (closestSnap.distance > 50) {
-					penCursor.position.copyFrom(localMouse);
-				} else {
-					penCursor.position.copyFrom(closestSnap.point);
-				}
-			} else {
-				penCursor.position.copyFrom(localMouse);
-			}
-		}
-	}, [penCursor, rooms, snapEnabled, world]);
-
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled && penCursor && viewport) {
 			if (penCursor.parent != world) { world.addChild(penCursor); }
@@ -163,8 +187,8 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 		if (world && viewport && enabled && penCursor && !cursorOverUI) {
 			const referenceRadius = 8 * viewport.scale.x;
 			if (e.button === 0) {
-				if (buildDots && buildDots.length > 0) {
-					if (collisionTest(buildDots[0], penCursor) && buildDots.length > 2) {
+				if (pathDots && pathDots.length > 0) {
+					if (collisionTest(pathDots[0], penCursor) && pathDots.length > 2) {
 						placementLine.clear();
 					} else {
 						placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)));
@@ -177,13 +201,13 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 			// setCursor("none");
 			penCursor.visible = true;
 		}
-	}, [world, viewport, enabled, penCursor, cursorOverUI, buildDots, placementLine, placeDot]);
+	}, [world, viewport, enabled, penCursor, cursorOverUI, pathDots, placementLine, placeDot]);
 
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
 		bind("escape", () => {
-			setBuildDots(null);
+			setPathDots(null);
 			placementLine.clear();
 		});
 	}, [bind, placementLine]);
@@ -191,24 +215,24 @@ export function usePaths({ world, enabled, viewport, setCursor, rooms }: UseBuil
 	// deletes build dots on mode change
 	useEffect(() => {
 		if (!enabled) {
-			buildDots?.map(dot => dot.destroy());
-			setBuildDots(null);
+			pathDots?.map(dot => dot.destroy());
+			setPathDots(null);
 		}
-	}, [buildDots, enabled]);
+	}, [pathDots, enabled]);
 
 	// sync with world state 
 	useEffect(() => {
 		if (world) {
-			const worldDots = world.children.filter(obj => obj.name === "buildDot");
-			if (!buildDots) {
+			const worldDots = world.children.filter(obj => obj.name === "pathDot");
+			if (!pathDots) {
 				worldDots.map(obj => obj.destroy());
 			} else {
 				worldDots
-					.filter(obj => !buildDots.includes(obj as Graphics))
+					.filter(obj => !pathDots.includes(obj as Graphics))
 					.map(obj => obj.destroy());
 			}
 		}
-	}, [buildDots, world]);
+	}, [pathDots, world]);
 
 	// registers event listeners
 	useEffect(() => {
