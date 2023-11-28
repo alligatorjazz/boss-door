@@ -1,15 +1,13 @@
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Key } from "ts-key-enum";
-import { Editor } from "../../components/ui/Editor";
-import { ModeSelect } from "../../components/ui/ModeSelect";
-import { useCanvas } from "../../hooks/useCanvas";
-import { useNodes } from "../../hooks/useNodes";
-import { useRooms } from "../../hooks/useRooms";
-import { BuildActions, EditMode } from "../../types";
-import { KeyBindings } from "../../types/keys";
-import { DungeonContext } from "./Index.lib";
-
+import { Editor } from "../components/ui/Editor";
+import { ModeSelect } from "../components/ui/ModeSelect";
+import { useCanvas } from "../hooks/useCanvas";
+import { useNodes } from "../hooks/useNodes";
+import { useRooms } from "../hooks/useRooms";
+import { BuildActions, DrawActions, EditMode } from "../types";
+import { KeyBindings } from "../types/keys";
+import { DungeonContext } from "./Edit.lib";
 
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
@@ -35,15 +33,21 @@ export function Edit() {
 		backgroundColor: "slategray",
 		antialias: true
 	});
+
 	const { add, remove, removeAll, ...nodes } = useNodes(world);
 	const rooms = useRooms(world);
 
-	const draw = useCallback((cb: (actions: BuildActions) => void) => {
+	const draw = useCallback((cb: (actions: DrawActions) => void) => {
 		if (world) {
 			cb({ add, remove, removeAll });
 		}
 	}, [add, remove, removeAll, world]);
 
+	const build = useCallback((cb: (actions: BuildActions) => void) => {
+		if (world) {
+			cb({ add: rooms.add, remove: rooms.remove });
+		}
+	}, [rooms.add, rooms.remove, world]);
 
 	const capturePointer = useCallback((element: HTMLElement) => {
 		element.addEventListener("pointerover", () => setCursorOverUI(true));
@@ -51,13 +55,22 @@ export function Edit() {
 	}, []);
 
 	useEffect(() => {
-		draw(({ add }) => {
-			for (let i = 0; i < 4; i++) {
-				const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
-				b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
+		// draw(({ add }) => {
+		// 	for (let i = 0; i < 4; i++) {
+		// 		const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
+		// 		b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
+		// 	}
+		// });
+		build(({ add }) => {
+			const points = [];
+			for (let i = 0; i < 8; i++) {
+				const r = (n: number) => Math.random() > 0.5 ?
+					-n * Math.random() : n * Math.random();
+				points.push({ x: r(100), y: r(100) });
 			}
+			add({ points });
 		});
-	}, [draw]);
+	}, [build]);
 
 	useEffect(() => {
 		if (uiRef.current) {

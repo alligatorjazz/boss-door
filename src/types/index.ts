@@ -4,6 +4,7 @@ import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
 import { useNodes } from "../hooks/useNodes";
 import { MapNode } from "../lib/nodes";
+import { useRooms } from "../hooks/useRooms";
 
 export type Empty = Record<string, never>
 
@@ -31,8 +32,11 @@ export type ViewHook<T extends object = object, K extends object = object> = (op
 export type ArrayElement<ArrayType extends readonly unknown[]> =
 	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
-export type EditMode = "move" | "build";
-export type BuildActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+export type EditMode = "move" | "build" | "path";
+export type DrawActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+export type WithoutDrawActions<T> = Omit<T, "add" | "remove" | "removeAll">;
+
+export type BuildActions = Pick<ReturnType<typeof useRooms>, "add" | "remove">;
 export type WithoutBuildActions<T> = Omit<T, "add" | "remove" | "removeAll">;
 
 export type Grid = ReturnType<typeof useGrid>;

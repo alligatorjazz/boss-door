@@ -17,11 +17,11 @@ type UseBuildOptions = {
 	enabled: boolean;
 	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	minCellSize: number;
-	rooms: ReturnType<typeof useRooms>;
+	rooms: ReturnType<typeof useRoomss>;
 	setCursor: (mode: string) => void;
 }
 
-export function useBuild({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
+export function usePaths({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
 	// TODO: connect to useGrid and enable adaptive snap

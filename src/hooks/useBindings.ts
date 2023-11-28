@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { DungeonContext } from "../routes/Edit/Index.lib";
+import { DungeonContext } from "../routes/Edit.lib";
 import { Command, Modifiers } from "../types/keys";
 import { Key } from "ts-key-enum";
 export function useBindings() {

@@ -1,8 +1,10 @@
 import { HTMLAttributes, useContext } from "react";
 import Pointer from "../../assets/feather/mouse-pointer.svg?react";
 import Hammer from "../../assets/iconoir/hammer.svg?react";
+import Edit3 from "../../assets/feather/edit-3.svg?react";
+
 import { EditMode } from "../../types";
-import { DungeonContext } from "../../routes/Edit/Index.lib";
+import { DungeonContext } from "../../routes/Edit.lib";
 
 interface Props extends HTMLAttributes<HTMLDivElement> { }
 
@@ -38,6 +40,9 @@ export function ModeSelect({ className, ...props }: Props) {
 			</ModeButton>
 			<ModeButton mode="build">
 				<Hammer stroke="white" width={size} height={size} />
+			</ModeButton>
+			<ModeButton mode="path">
+				<Edit3 stroke="white" width={size} height={size} />
 			</ModeButton>
 		</section>
 	);

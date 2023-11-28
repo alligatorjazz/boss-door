@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, createContext } from "react";
-import { EditMode } from "../../types";
-import { KeyBindings } from "../../types/keys";
+import { EditMode } from "../types";
+import { KeyBindings } from "../types/keys";
 
 type DungeonContextData = {
 	mode: EditMode,

@@ -5,14 +5,15 @@ import { useBuild } from "../../hooks/useBuild";
 import { useGrid } from "../../hooks/useGrid";
 import { useNodes } from "../../hooks/useNodes";
 import { useSelect } from "../../hooks/useSelect";
-import { EditMode, WithoutBuildActions } from "../../types";
+import { EditMode, WithoutDrawActions } from "../../types";
 import { useRooms } from "../../hooks/useRooms";
+import { usePaths } from "../../hooks/usePaths";
 
 interface Props {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	setCursor: (mode: string) => void;
-	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>
+	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>
 	mode: EditMode;
 	windowRef: MutableRefObject<HTMLDivElement | null>;
 	rooms: ReturnType<typeof useRooms>;
@@ -22,6 +23,7 @@ export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, roo
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
 	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor, rooms });
 	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
+	usePaths({ world, nodes, enabled: mode === "path", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
 
 	// handling mode changes
 	useEffect(() => {
@@ -37,6 +39,14 @@ export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, roo
 					break;
 				}
 				case "build": {
+					viewport
+						.drag({ mouseButtons: "middle", wheel: true })
+						.clamp({ direction: "all" })
+						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
+						.clampZoom({ maxScale: 1 });
+					break;
+				}
+				case "path": {
 					viewport
 						.drag({ mouseButtons: "middle", wheel: true })
 						.clamp({ direction: "all" })

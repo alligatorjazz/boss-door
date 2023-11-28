@@ -9,7 +9,7 @@ import {
 	RouterProvider,
 } from "react-router-dom";
 import "./Main.css";
-import { Edit } from "./routes/Edit/Index";
+import { Edit } from "./routes/Edit";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(

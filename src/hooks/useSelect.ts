@@ -4,7 +4,7 @@ import { NodeHandle } from "../lib/nodes";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
 import { useBindings } from "./useBindings";
-import { WithoutBuildActions } from "../types";
+import { WithoutBuildActions, WithoutDrawActions } from "../types";
 import { useRooms } from "./useRooms";
 import { RoomHandle } from "../lib/rooms";
 
@@ -12,7 +12,7 @@ type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: WithoutBuildActions<ReturnType<typeof useNodes>>;
+	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	rooms: WithoutBuildActions<ReturnType<typeof useRooms>>;
 	setCursor: (mode: string) => void;
 }
