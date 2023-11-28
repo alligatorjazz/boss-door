@@ -1,7 +1,7 @@
 import { segmentIntersection } from "@pixi/math-extras";
 import { ExtendedGraphics } from "pixi-extended-graphics";
 import { Viewport } from "pixi-viewport";
-import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point } from "pixi.js";
+import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point, Sprite } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { collisionTest, snap } from "../lib";
@@ -10,6 +10,7 @@ import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 import { useRooms } from "./useRooms";
 import { DungeonContext } from "../routes/Edit.lib";
+import { Pen } from "../components/canvas/Pen";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -17,28 +18,27 @@ type UseBuildOptions = {
 	enabled: boolean;
 	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	minCellSize: number;
-	rooms: ReturnType<typeof useRoomss>;
+	rooms: ReturnType<typeof useRooms>;
 	setCursor: (mode: string) => void;
 }
 
 export function usePaths({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
-	// TODO: connect to useGrid and enable adaptive snap
 	const { cursorOverUI } = useContext(DungeonContext);
 
-	// disables cursor so pseudo-cursor can be enabled
+	// disables cursor so pen-cursor can be enabled
 	useEffect(() => {
 		if (enabled && world) {
-			setCursor("none");
+			// setCursor("none");
 		}
 	}, [enabled, setCursor, world]);
 
-	const pseudoCursor = useMemo(() => {
+	const penCursor = useMemo(() => {
 		if (viewport && world) {
-			const graphics = world.children.find(obj => obj.name === "pseudoCursor")
-				?? BuildDot({ position: new Point(0, 0), viewport, cursor: true });
-			return graphics as Graphics;
+			const sprite = world.children.find(obj => obj.name === "penCursor")
+				?? Pen();
+			return sprite as Sprite;
 		}
 	}, [viewport, world]);
 
@@ -56,7 +56,6 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 							}
 						});
 						const newLine: [IPoint, IPoint] = [prev[prev.length - 1].position, position];
-						// console.log(`lines: ${lines.map(line => line.map(pt => parsePoint(pt)))}, newline: ${newLine.map(pt => parsePoint(pt))}`);
 						for (const line of lines) {
 							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);
 							if (!isNaN(intersection.x) && intersection.x != newLine[0].x) {
@@ -77,22 +76,6 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 		}
 	}, [viewport, world]);
 
-	const closeShape = useCallback(() => {
-		if (buildDots && world) {
-			rooms.add({
-				points: buildDots.map(dot => {
-					const { pivot, position } = dot;
-					dot.destroy();
-					return new Point(
-						position.x - pivot.x,
-						position.y - pivot.y
-					);
-				})
-			});
-			setBuildDots(null);
-		}
-	}, [buildDots, rooms, world]);
-
 	const placementLine = useMemo(() => {
 		const graphics = world?.children.find(obj => obj.name === "placementLine") as ExtendedGraphics
 			?? new ExtendedGraphics();
@@ -105,121 +88,86 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 
 
 	const drawPlacementLine = useCallback(() => {
-		if (placementLine && buildDots && buildDots.length > 0 && pseudoCursor) {
-			const offset = pseudoCursor.getBounds();
+		if (placementLine && buildDots && buildDots.length > 0 && penCursor) {
+			const dotOffset = buildDots[0].getLocalBounds();
 			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "teal", join: LINE_JOIN.ROUND });
-			placementLine.moveToPoint(buildDots[buildDots.length - 1].position.subtract({
-				x: offset.width / 2,
-				y: offset.height / 2
-			}));
-			placementLine.dashedLineToPoint(pseudoCursor.position.subtract({
-				x: offset.width / 2,
-				y: offset.height / 2
-			}), 10, 2);
+			placementLine.moveToPoint(buildDots[buildDots.length - 1].position
+				.subtract({
+					x: dotOffset.width /2,
+					y: dotOffset.height /2
+				})
+			);
+			placementLine.dashedLineToPoint(penCursor.position
+				.subtract({
+					x: dotOffset.width /2,
+					y: dotOffset.height /2
+				}), 10, 2);
 		} else {
 			placementLine.clear();
 		}
-	}, [buildDots, placementLine, pseudoCursor]);
-
-	const previewLines = useMemo(() => {
-		const graphics = world?.children.find(obj => obj.name === "previewLines") as ExtendedGraphics
-			?? new ExtendedGraphics();
-		graphics.clear();
-		graphics.name = "previewLines";
-		graphics.zIndex = 100;
-		world?.addChild(graphics);
-		return graphics;
-	}, [world]);
-
-	const drawPreviewLines = useCallback(() => {
-		if (buildDots && buildDots.length > 1 && pseudoCursor) {
-			const offset = pseudoCursor.getBounds();
-			buildDots.map((dot, index) => {
-				if (index < buildDots.length - 1) {
-					previewLines.lineStyle({ alignment: 0.5, width: 5, color: "skyblue", join: LINE_JOIN.ROUND });
-					previewLines.moveToPoint(dot.position.subtract({
-						x: offset.width / 2,
-						y: offset.height / 2
-					}));
-					previewLines.dashedLineToPoint(buildDots[index + 1].position.subtract({
-						x: offset.width / 2,
-						y: offset.height / 2
-					}), 10, 2);
-				}
-			});
-		} else {
-			previewLines.clear();
-		}
-	}, [buildDots, previewLines, pseudoCursor]);
-
-	useEffect(() => {
-		drawPreviewLines();
-	}, [buildDots, drawPreviewLines]);
+	}, [buildDots, placementLine, penCursor]);
 
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
 			if (e.button === 1) {
 				setCursor("grabbing");
-				if (pseudoCursor) {
-					pseudoCursor.visible = false;
+				if (penCursor) {
+					penCursor.visible = false;
 				}
 
 			}
 		}
-	}, [enabled, pseudoCursor, setCursor, world]);
+	}, [enabled, penCursor, setCursor, world]);
 
 	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
-		if (world && pseudoCursor) {
+		if (world && penCursor) {
 			const localMouse = e.getLocalPosition(world);
 			const newPoint = snapEnabled ? new Point(
 				snap(localMouse.x, minCellSize),
 				snap(localMouse.y, minCellSize)
 			) : localMouse;
-			pseudoCursor.position.copyFrom(newPoint);
+			penCursor.position.copyFrom(newPoint);
 		}
-	}, [minCellSize, pseudoCursor, snapEnabled, world]);
+	}, [minCellSize, penCursor, snapEnabled, world]);
 
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
-		if (world && enabled && pseudoCursor && viewport) {
-			if (pseudoCursor.parent != world) { world.addChild(pseudoCursor); }
+		if (world && enabled && penCursor && viewport) {
+			if (penCursor.parent != world) { world.addChild(penCursor); }
 			syncCursor(e);
 			drawPlacementLine();
 		}
-	}, [world, enabled, pseudoCursor, viewport, syncCursor, drawPlacementLine]);
+	}, [world, enabled, penCursor, viewport, syncCursor, drawPlacementLine]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
-		if (world && enabled && pseudoCursor && !cursorOverUI) {
+		if (world && enabled && penCursor && !cursorOverUI) {
 			if (e.button === 0) {
 				if (buildDots && buildDots.length > 0) {
-					if (collisionTest(buildDots[0], pseudoCursor) && buildDots.length > 2) {
-						closeShape();
-						previewLines.clear();
+					if (collisionTest(buildDots[0], penCursor) && buildDots.length > 2) {
 						placementLine.clear();
 					} else {
-						placeDot(pseudoCursor.position);
+						placeDot(penCursor.position);
 					}
 				} else {
-					placeDot(pseudoCursor.position, "lightblue");
+					placeDot(penCursor.position, "lightblue");
 				}
 			}
 
 			setCursor("none");
-			pseudoCursor.visible = true;
+			penCursor.visible = true;
 		}
-	}, [world, enabled, pseudoCursor, cursorOverUI, setCursor, buildDots, closeShape, previewLines, placementLine, placeDot]);
+	}, [world, enabled, penCursor, cursorOverUI, setCursor, buildDots, placementLine, placeDot]);
 
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
-		bind("escape", () => { 
+		bind("escape", () => {
 			setBuildDots(null);
-			previewLines.clear();
 			placementLine.clear();
 		});
 		bind("snap-start", () => setSnapEnabled(true));
 		bind("snap-end", () => setSnapEnabled(false));
-	}, [bind, placementLine, previewLines]);
+	}, [bind, placementLine]);
 
 	// deletes build dots on mode change
 	useEffect(() => {
@@ -251,10 +199,9 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
 			world.on("wheel", syncCursor);
-			pseudoCursor?.scale.set(1);
+			penCursor?.scale.set(1);
 		} else {
-			pseudoCursor?.scale.set(0);
-			previewLines.clear();
+			penCursor?.scale.set(0);
 			placementLine.clear();
 		}
 
@@ -265,5 +212,5 @@ export function usePaths({ world, enabled, viewport, minCellSize, setCursor, roo
 			world?.removeListener("pointerupoutside", handleBuildPointerUp);
 			world?.removeListener("wheel", syncCursor);
 		};
-	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, placementLine, previewLines, pseudoCursor?.scale, syncCursor, world]);
+	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, placementLine, penCursor?.scale, syncCursor, world]);
 }
