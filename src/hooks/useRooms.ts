@@ -1,12 +1,16 @@
 import { Container, Graphics } from "pixi.js";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback } from "react";
 import { RoomObject } from "../components/canvas/RoomObject";
 import { RoomHandle, createRoom } from "../lib/rooms";
-import { DungeonRoom } from "../types";
+import { CustomDispatch, DungeonRoom } from "../types";
 type RemoveOptions = { id: string };
-
-export function useRooms(world?: Container | null) {
-	const [rooms, setRooms] = useState<DungeonRoom[]>([]);
+type UseRoomsOptions = {
+	world?: Container | null;
+	readonly rooms: DungeonRoom[];
+	setRooms: CustomDispatch<DungeonRoom[]>;
+}
+// TODO: implement usePaths, then add to usePen
+export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 	const getObject = useCallback((room: DungeonRoom) => {
 		return world?.children.find(obj => obj.name === room.id) as Graphics | undefined;
 	}, [world?.children]);
@@ -15,7 +19,7 @@ export function useRooms(world?: Container | null) {
 		setRooms(prevNodes => {
 			return prevNodes.filter(room => room.id !== id);
 		});
-	}, []);
+	}, [setRooms]);
 
 	const map = useCallback((cb: (handle: RoomHandle, index?: number, arr?: RoomHandle[]) => ReactNode) => {
 		return (rooms.map(room => ({ room, get obj() { return getObject(room); } })) as RoomHandle[])
@@ -33,15 +37,17 @@ export function useRooms(world?: Container | null) {
 	}, [getObject, rooms]);
 
 	const add = useCallback((params: Pick<DungeonRoom, "points">) => {
+		console.count("adding room");
+		// debugger;
 		const room = createRoom(params);
-		setRooms(prevNodes => [...prevNodes, room]);
+		setRooms(prev => [...prev, room]);
 		world?.addChild(RoomObject(room));
 		return {
 			room, get obj() {
 				return world?.children.find(obj => obj.name === room.id) as Graphics | undefined;
 			}
 		} as RoomHandle;
-	}, [world]);
+	}, [setRooms, world]);
 
-	return { add, remove,list: rooms, map, filter, find };
+	return { add, remove, list: rooms, map, filter, find };
 }

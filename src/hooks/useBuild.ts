@@ -5,23 +5,20 @@ import { Container, FederatedPointerEvent, Graphics, IPoint, LINE_JOIN, Point } 
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BuildDot } from "../components/canvas/BuildDot";
 import { collisionTest, snap } from "../lib";
-import { WithoutDrawActions } from "../types";
-import { useBindings } from "./useBindings";
-import { useNodes } from "./useNodes";
-import { useRooms } from "./useRooms";
 import { DungeonContext } from "../routes/Edit.lib";
+import { useBindings } from "./useBindings";
+import { useRooms } from "./useRooms";
 
 type UseBuildOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	minCellSize: number;
-	rooms: ReturnType<typeof useRooms>;
+	roomHandles: ReturnType<typeof useRooms>;
 	setCursor: (mode: string) => void;
 }
 
-export function useBuild({ world, enabled, viewport, minCellSize, setCursor, rooms }: UseBuildOptions) {
+export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roomHandles }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
 	// TODO: connect to useGrid and enable adaptive snap
@@ -81,7 +78,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 
 	const closeShape = useCallback(() => {
 		if (buildDots && world) {
-			rooms.add({
+			roomHandles.add({
 				points: buildDots.map(dot => {
 					const { pivot, position } = dot;
 					dot.destroy();
@@ -93,7 +90,7 @@ export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roo
 			});
 			setBuildDots(null);
 		}
-	}, [buildDots, rooms, world]);
+	}, [buildDots, roomHandles, world]);
 
 	const placementLine = useMemo(() => {
 		const graphics = world?.children.find(obj => obj.name === "placementLine") as ExtendedGraphics

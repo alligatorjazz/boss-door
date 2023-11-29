@@ -102,7 +102,10 @@ export type ValidNodeValue<T extends MapNodeType, K extends ValidNodeKey<T>> =
 	MapNodes<T>["state"]["internal"][K] :
 	never;
 
-export type NodeHandle = { node: MapNode, obj: DisplayObject };
+export type NodeHandle<T extends MapNode["type"]> = {
+	data: MapNodes<T>;
+	getObject: () => DisplayObject;
+};
 
 type CreateNodeOptions<T extends MapNodeType> = {
 	type: T,

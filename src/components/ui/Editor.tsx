@@ -7,23 +7,25 @@ import { useNodes } from "../../hooks/useNodes";
 import { useSelect } from "../../hooks/useSelect";
 import { EditMode, WithoutDrawActions } from "../../types";
 import { useRooms } from "../../hooks/useRooms";
+import { usePen } from "../../hooks/usePen";
 import { usePaths } from "../../hooks/usePaths";
 
 interface Props {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	setCursor: (mode: string) => void;
-	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>
+	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>
 	mode: EditMode;
 	windowRef: MutableRefObject<HTMLDivElement | null>;
-	rooms: ReturnType<typeof useRooms>;
+	roomHandles: ReturnType<typeof useRooms>;
+	pathHandles: ReturnType<typeof usePaths>;
 }
-export function Editor({ world, viewport, setCursor, nodes, mode, windowRef, rooms }: Props) {
+export function Editor({ world, viewport, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }: Props) {
 	const baseCellSize = 16;
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });
-	useSelect({ world, nodes, viewport, enabled: mode === "move", setCursor, rooms });
-	useBuild({ world, nodes, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, rooms });
-	usePaths({ world, nodes, enabled: mode === "path", viewport, setCursor, rooms });
+	useSelect({ world, nodeHandles, viewport, enabled: mode === "move", setCursor, roomHandles });
+	useBuild({ world, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, roomHandles });
+	usePen({ world, nodeHandles, enabled: mode === "path", viewport, setCursor, roomHandles, pathHandles });
 
 	// handling mode changes
 	useEffect(() => {

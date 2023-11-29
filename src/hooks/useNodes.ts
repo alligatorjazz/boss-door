@@ -5,13 +5,7 @@ import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
 import { MapNode, MapNodes, NodeHandle, createNode } from "../lib/nodes";
 
-type AddOptions = { name: string }
-type RemoveOptions = { id: string };
-
-export function useNodes(world?: Container | null) {
-	const [nodes, setNodes] = useState<MapNode[]>([]);
-	const [objects, setObjects] = useState<DisplayObject[]>([]);
-	
+export function useNodes() {
 	const createNodeObject = useCallback((node: MapNode): DisplayObject => {
 		let obj: DisplayObject;
 		switch (node.type) {
@@ -36,88 +30,10 @@ export function useNodes(world?: Container | null) {
 		return obj;
 	}, []);
 
-	// sync nodes with objects
-	useEffect(() => {
-		setObjects(prev => {
-			const newObjects: DisplayObject[] = [];
-			for (const node of nodes) {
-				const oldObject = prev.find(obj => obj.name === node.id);
-				if (oldObject) {
-					newObjects.push(oldObject);
-					continue;
-				}
-
-				const obj = createNodeObject(node);
-				newObjects.push(obj);
-			}
-
-			// delete objects that correspond to non-extant nodes
-			for (const obj of prev.filter(obj => !newObjects.includes(obj))) {
-				console.count("destroying object");
-				obj.destroy();
-			}
-
-			return newObjects;
-		});
-
-	}, [createNodeObject, nodes]);
-
-	// sync objects with world 
-	useEffect(() => {
-		if (world) {
-			for (const obj of objects) {
-				if (!world.children.includes(obj)) {
-					world.addChild(obj);
-				}
-			}
-		}
-	}, [objects, world]);
-
-	const remove = useCallback(({ id }: RemoveOptions) => {
-		setNodes(prevNodes => {
-			return prevNodes.filter(node => node.id !== id);
-		});
-	}, []);
-
-	const removeAll = useCallback(() => {
-		console.count("remove all called");
-		setNodes(() => {
-			setObjects(prev => {
-				prev.map(prevObj => prevObj.destroy());
-				return [];
-			});
-			return [];
-		});
-	}, []);
-
-	const map = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => ReactNode) => {
-		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
-			.map(cb);
-	}, [nodes, objects]);
-
-	const filter = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
-		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
-			.filter(cb);
-	}, [nodes, objects]);
-
-	const find = useCallback((cb: (handle: NodeHandle, index?: number, arr?: NodeHandle[]) => boolean) => {
-		return (nodes.map(node => ({ node, obj: objects.find(obj => obj.name === node.id) })) as NodeHandle[])
-			.find(cb);
-	}, [nodes, objects]);
-
-	
-	const add = useCallback(<T extends MapNode["type"]>(type: T, options: AddOptions) => {
-		const node = createNode({ type, ...options }) as MapNodes<T>;
-		setNodes(prevNodes => [...prevNodes, node]);
-		return {
-			// TODO: refactor to check for existing object before creating + adding a new one with the getter
-			node, get obj() {
-				const obj = createNodeObject(node);
-				setObjects(prev => [...prev, obj]);
-				return obj;
-			}
-		} as NodeHandle;
+	const create = useCallback(<T extends MapNode["type"]>(type: T) => {
+		const data = createNode({ type }) as MapNodes<T>;
+		return { data, getObject: () => createNodeObject(data) } as NodeHandle<T>;
 	}, [createNodeObject]);
 
-	return { add, remove, removeAll, list: nodes, map, filter, find };
+	return { create };
 }

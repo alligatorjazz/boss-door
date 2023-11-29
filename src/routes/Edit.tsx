@@ -8,13 +8,20 @@ import { useRooms } from "../hooks/useRooms";
 import { BuildActions, DrawActions, EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
+import { useDungeon } from "../hooks/useDungeon";
+import { usePaths } from "../hooks/usePaths";
 
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("path");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
-	const [debug, log] = useState<string | null>(null);
+	const [activeFloor] = useState(0);
+
+	const dungeon = useDungeon();
+	const { rooms, setRooms, paths, setPaths } = useMemo(() => {
+		return dungeon.getFloorHandles(activeFloor);
+	}, [activeFloor, dungeon]);
 
 	const bindings: KeyBindings = useMemo(() => {
 		return {
@@ -34,20 +41,15 @@ export function Edit() {
 		antialias: true
 	});
 
-	const { add, remove, removeAll, ...nodes } = useNodes(world);
-	const rooms = useRooms(world);
-
-	const draw = useCallback((cb: (actions: DrawActions) => void) => {
-		if (world) {
-			cb({ add, remove, removeAll });
-		}
-	}, [add, remove, removeAll, world]);
+	const nodeHandles = useNodes();
+	const roomHandles = useRooms({ world, rooms, setRooms });
+	const pathHandles = usePaths({ world, paths, setPaths, rooms });
 
 	const build = useCallback((cb: (actions: BuildActions) => void) => {
 		if (world) {
-			cb({ add: rooms.add, remove: rooms.remove });
+			cb({ add: roomHandles.add, remove: roomHandles.remove });
 		}
-	}, [rooms.add, rooms.remove, world]);
+	}, [roomHandles.add, roomHandles.remove, world]);
 
 	const capturePointer = useCallback((element: HTMLElement) => {
 		element.addEventListener("pointerover", () => setCursorOverUI(true));
@@ -61,18 +63,8 @@ export function Edit() {
 		// 		b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
 		// 	}
 		// });
-		build(({ add }) => {
-			add({
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 0, y: 404 },
-					{ x: 400, y: 100 },
-					{ x: 100, y: 0 },
-					{ x: 0, y: 0 }
-				]
-			});
-		});
-	}, [build, draw]);
+
+	}, [build]);
 
 	useEffect(() => {
 		if (uiRef.current) {
@@ -82,13 +74,13 @@ export function Edit() {
 
 
 	return (
-		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, ui: { log } }}>
+		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
-				<Editor {...{ draw, viewport, world, setCursor, nodes, mode, windowRef, rooms }} />
+				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<div ref={uiRef} className="h-full flex flex-col">
 						<ModeSelect className="flex-1" />
-						{debug && <div className="bg-black">{debug}</div>}
+						<div>floor: {activeFloor}</div>
 					</div>
 				</section>
 			</div>

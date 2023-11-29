@@ -44,15 +44,33 @@ export type Grid = ReturnType<typeof useGrid>;
 export type DungeonRoom = {
 	id: string;
 	points: IPointData[];
-	paths: { points: [IPointData, IPointData], nodeId: string | null, linkedRoomId: string | null }[]
+	paths: { points: [IPointData, IPointData], node: MapNode, linkedRoomId: string | null }[]
 	position: IPointData;
 }
-
-export type DungeonFloor = { id: string; name: string | null; rooms: DungeonRoom[] };
-
-export type Dungeon = {
+export type DungeonPath = {
 	id: string;
-	floors: DungeonFloor[];
-	orphanNodes: MapNode[];
+	node?: MapNode | null,
+	// relative to room position
+	between: [{
+		roomId: string,
+		point: IPointData
+	}, {
+		roomId: string,
+		point: IPointData
+	}]
+}
+
+export type DungeonFloor = {
+	id: string;
+	name: string | null;
+	rooms: DungeonRoom[];
+	paths: DungeonPath[];
 };
 
+export type Dungeon = {
+	version: string;
+	floors: DungeonFloor[];
+	name: string | null;
+};
+
+export type CustomDispatch<T> = (value: (T | ((prev: T) => T))) => void;

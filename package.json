@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.0",
+    "array-move": "^4.0.0",
     "fontfaceobserver": "^2.3.0",
     "pixi-extended-graphics": "^0.2.3",
     "pixi-viewport": "^5.0.2",

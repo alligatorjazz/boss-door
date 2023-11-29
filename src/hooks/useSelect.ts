@@ -12,16 +12,16 @@ type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodes: WithoutDrawActions<ReturnType<typeof useNodes>>;
-	rooms: WithoutBuildActions<ReturnType<typeof useRooms>>;
+	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
+	roomHandles: WithoutBuildActions<ReturnType<typeof useRooms>>;
 	setCursor: (mode: string) => void;
 }
 
 const selectColor = "#0253f5";
-export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }: UseSelectOptions) {
+export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, setCursor }: UseSelectOptions) {
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
-	const [selected, setSelected] = useState<(NodeHandle | RoomHandle)[]>([]);
+	const [selected, setSelected] = useState<(RoomHandle)[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
 
 	useEffect(() => {
@@ -189,15 +189,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 	useEffect(() => {
 		if (selectOrigin && selectTerminus && world) {
 			const newSelections = [
-				...nodes.filter(({ obj }) => {
-					const global = obj.getGlobalPosition();
-					const comparePoint = new Point(
-						global.x - obj.pivot.x,
-						global.y - obj.pivot.y
-					);
-					return obj && selectorRect.containsPoint(comparePoint);
-				}),
-				...rooms.filter(({ obj }) => {
+				...roomHandles.filter(({ obj }) => {
 					const global = obj.getGlobalPosition();
 					const comparePoint = new Point(
 						global.x - obj.pivot.x,
@@ -217,7 +209,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 			selectorRect.clear();
 			selectedRect.clear();
 		}
-	}, [nodes, selectOrigin, selectorRect, selectTerminus, world, selectedRect, rooms]);
+	}, [nodeHandles, selectOrigin, selectorRect, selectTerminus, world, selectedRect, roomHandles]);
 
 	// draws selection outlines around selected objects
 	useEffect(() => {
@@ -226,7 +218,7 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 		} else {
 			selectedRect.clear();
 		}
-	}, [nodes, outlineSelections, selected, selectedRect, world]);
+	}, [nodeHandles, outlineSelections, selected, selectedRect, world]);
 
 	// key events
 	const bind = useBindings();
@@ -255,5 +247,5 @@ export function useSelect({ world, enabled, viewport, nodes, rooms, setCursor }:
 	}, [enabled, handleSelectPointerDown, handleSelectPointerMove, handleSelectPointerUp, outlineSelections, viewport, world]);
 
 
-	return selected as ReadonlyArray<NodeHandle>;
+	return selected as Readonly<typeof selected>;
 }
