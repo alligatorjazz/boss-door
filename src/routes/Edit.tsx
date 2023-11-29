@@ -3,13 +3,13 @@ import { Key } from "ts-key-enum";
 import { Editor } from "../components/ui/Editor";
 import { ModeSelect } from "../components/ui/ModeSelect";
 import { useCanvas } from "../hooks/useCanvas";
+import { useDungeon } from "../hooks/useDungeon";
 import { useNodes } from "../hooks/useNodes";
+import { usePaths } from "../hooks/usePaths";
 import { useRooms } from "../hooks/useRooms";
-import { BuildActions, DrawActions, EditMode } from "../types";
+import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
-import { useDungeon } from "../hooks/useDungeon";
-import { usePaths } from "../hooks/usePaths";
 
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
@@ -45,26 +45,14 @@ export function Edit() {
 	const roomHandles = useRooms({ world, rooms, setRooms });
 	const pathHandles = usePaths({ world, paths, setPaths, rooms });
 
-	const build = useCallback((cb: (actions: BuildActions) => void) => {
-		if (world) {
-			cb({ add: roomHandles.add, remove: roomHandles.remove });
-		}
-	}, [roomHandles.add, roomHandles.remove, world]);
-
 	const capturePointer = useCallback((element: HTMLElement) => {
 		element.addEventListener("pointerover", () => setCursorOverUI(true));
 		element.addEventListener("pointerout", () => setCursorOverUI(false));
 	}, []);
 
 	useEffect(() => {
-		// draw(({ add }) => {
-		// 	for (let i = 0; i < 4; i++) {
-		// 		const b = add("barrier", { name: "ABCDEF".charAt(Math.floor(Math.random() * 6)) });
-		// 		b.obj.position.set(Math.random() * 1000 - 400, Math.random() * 1000 - 300);
-		// 	}
-		// });
-
-	}, [build]);
+		console.log(paths);
+	}, [paths]);
 
 	useEffect(() => {
 		if (uiRef.current) {

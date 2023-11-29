@@ -1,12 +1,12 @@
 import { Container, FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { NodeHandle } from "../lib/nodes";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
 import { useBindings } from "./useBindings";
 import { WithoutBuildActions, WithoutDrawActions } from "../types";
 import { useRooms } from "./useRooms";
 import { RoomHandle } from "../lib/rooms";
+import { usePaths } from "./usePaths";
 
 type UseSelectOptions = {
 	world?: Container | null;
@@ -14,11 +14,12 @@ type UseSelectOptions = {
 	enabled: boolean;
 	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	roomHandles: WithoutBuildActions<ReturnType<typeof useRooms>>;
+	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
 
 const selectColor = "#0253f5";
-export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, setCursor }: UseSelectOptions) {
+export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, pathHandles: { drawPaths }, setCursor }: UseSelectOptions) {
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [selected, setSelected] = useState<(RoomHandle)[]>([]);
@@ -161,10 +162,10 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 					);
 				});
 				outlineSelections();
-
+				drawPaths();
 			}
 		}
-	}, [enabled, moveOrigin, outlineSelections, selectOrigin, selected, selectorRect, viewport?.scale.x, world]);
+	}, [drawPaths, enabled, moveOrigin, outlineSelections, selectOrigin, selected, selectorRect, viewport?.scale.x, world]);
 
 	const handleSelectPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {

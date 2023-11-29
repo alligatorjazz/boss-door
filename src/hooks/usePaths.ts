@@ -13,44 +13,46 @@ type UsePathsOptions = {
 // TODO: implement usePaths, then add to usePen
 export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 	const pathLayer = useMemo(() => {
-		const graphics = world?.children.find(obj => obj.name == "pathLayer") ?? new ExtendedGraphics();
+		const prev = world?.children.find(obj => obj.name == "pathLayer");
+		const graphics = prev ?? new ExtendedGraphics();
 		graphics.name = "pathLayer";
+		if (graphics.parent != world) { 
+			world?.addChild(graphics); 
+		}
 		return graphics as ExtendedGraphics;
-	}, [world?.children]);
+	}, [world]);
 
-	// draw paths
-	useEffect(() => {
-		console.count("drawing paths");
+	const drawPaths = useCallback(() => {
+		pathLayer.clear();
 		paths.map(path => {
 			const [{ roomId: id1, point: pRoom1 }, { roomId: id2, point: pRoom2 }] = path.between;
-			const room1 = rooms.find(room => room.id == id1);
-			const room2 = rooms.find(room => room.id == id2);
+			const room1 = world?.children.find(room => room.name == id1);
+			const room2 = world?.children.find(room => room.name == id2);
 			try {
 				if (!(room1 && room2)) {
 					throw new Error(`Path could not be drawn between: ${room1} -> ${room2}`);
 				}
 
 				const [p1World, p2World]: [IPointData, IPointData] = [
-					{
-						x: pRoom1.x + room1.position.x,
-						y: pRoom1.y + room1.position.y,
-					},
-					{
-						x: pRoom2.x + room2.position.x,
-						y: pRoom2.y + room2.position.y,
-					}
+					room1.toGlobal(pRoom1),
+					room2.toGlobal(pRoom2),
 				];
 
+				console.count("drawing path");
 				pathLayer
-					.clear()
-					.lineStyle({ alignment: 0.5, color: "black" })
+					.lineStyle({ alignment: 0.5, color: "black", width: 4 })
 					.moveTo(p1World.x, p1World.y)
 					.lineTo(p2World.x, p2World.y);
 			} catch (err) {
 				console.error(err);
 			}
 		});
-	}, [pathLayer, paths, rooms]);
+	}, [pathLayer, paths, world?.children]);
+
+	// draw paths
+	useEffect(() => {
+		drawPaths();
+	}, [drawPaths, pathLayer, paths, rooms]);
 
 	// create handles to add / sever paths
 	const link = useCallback((between: DungeonPath["between"]) => {
@@ -77,5 +79,5 @@ export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 		}
 	}, [setPaths]);
 
-	return { link, sever, changePathNode };
+	return { link, sever, drawPaths, changePathNode };
 }

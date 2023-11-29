@@ -1,4 +1,3 @@
-import { segmentIntersection } from "@pixi/math-extras";
 import { ExtendedGraphics } from "pixi-extended-graphics";
 import { Viewport } from "pixi-viewport";
 import { Container, FederatedPointerEvent, Graphics, IPoint, IPointData, LINE_JOIN, Point, Sprite } from "pixi.js";
@@ -10,8 +9,8 @@ import { DungeonContext } from "../routes/Edit.lib";
 import { WithoutDrawActions } from "../types";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
-import { useRooms } from "./useRooms";
 import { usePaths } from "./usePaths";
+import { useRooms } from "./useRooms";
 
 type UseBuildOptions = {
 	world?: Container | null;
@@ -22,12 +21,12 @@ type UseBuildOptions = {
 	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
-
-export function usePen({ world, enabled, viewport, setCursor, roomHandles }: UseBuildOptions) {
+// TODO: make work / disable dupes
+export function usePen({ world, enabled, viewport, setCursor, roomHandles: { find: findRoom, map: mapRooms }, pathHandles: { link } }: UseBuildOptions) {
 	// TODO: adjust for erroneous pencursor position / point placement
-	const [pathDots, setPathDots] = useState<Graphics[] | null>();
+	const [pathDots, setPathDots] = useState<{ roomId: string, dot: Graphics }[] | null>();
 	const [snapEnabled] = useState(true);
-	const [snapPoints, setSnapPoints] = useState<IPointData[]>([]);
+	const [snapPoints, setSnapPoints] = useState<{ roomId: string, point: IPointData }[]>([]);
 	const { cursorOverUI } = useContext(DungeonContext);
 
 	// disables cursor so pen-cursor can be enabled
@@ -45,32 +44,18 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 		}
 	}, [viewport, world]);
 
-	const placeDot = useCallback((position: Point, color?: string) => {
+	const placeDot = useCallback((position: Point, roomId: string, color?: string) => {
 		if (world && viewport) {
-			const graphics = BuildDot({ position, color, viewport });
-			graphics.name = "pathDot";
+			const dot = BuildDot({ position, color, viewport });
+			dot.name = "pathDot";
 			setPathDots(prev => {
 				try {
 					if (prev) {
-						// disallow intersection
-						const lines: [Point, Point][] = [];
-						prev.map((dot, index) => {
-							if (index < prev.length - 1) {
-								lines.push([dot.position, prev[index + 1].position]);
-							}
-						});
-						const newLine: [IPoint, IPoint] = [prev[prev.length - 1].position, position];
-						for (const line of lines) {
-							const intersection = segmentIntersection(line[0], line[1], newLine[0], newLine[1]);
-							if (!isNaN(intersection.x) && intersection.x != newLine[0].x) {
-								throw new Error("Cannot place a dot that intersects a previously drawn line.");
-							}
-						}
-						world.addChild(graphics);
-						return [...prev, graphics];
+						world.addChild(dot);
+						return [...prev, { roomId, dot }];
 					} else {
-						world.addChild(graphics);
-						return [graphics];
+						world.addChild(dot);
+						return [{ roomId, dot }];
 					}
 				} catch (err) {
 					console.error(err);
@@ -93,22 +78,23 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 
 	const drawPlacementLine = useCallback(() => {
 		if (placementLine && pathDots && pathDots.length > 0 && penCursor) {
-			const dotBounds = pathDots[0].getLocalBounds();
+			const dotBounds = pathDots[0].dot.getLocalBounds();
 			const offset = new Point(dotBounds.width / 2, dotBounds.width / 2);
 			placementLine.clear().lineStyle({ alignment: 0.5, width: 5, color: "ghostwhite", join: LINE_JOIN.ROUND });
-			placementLine.moveToPoint(pathDots[pathDots.length - 1].position.subtract(offset));
+			placementLine.moveToPoint(pathDots[pathDots.length - 1].dot.position.subtract(offset));
 			placementLine.dashedLineToPoint(penCursor.position, 10, 2);
 		} else {
 			placementLine.clear();
 		}
 	}, [pathDots, placementLine, penCursor]);
+
 	// recalculates valid snap points based on number of roomHandles 
 	useEffect(() => {
 		setSnapPoints(() => {
 			// get a list of all snap points: 
 			// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
-			const points: IPointData[] = [];
-			roomHandles.map(({ room, obj }) => {
+			const points: (typeof snapPoints) = [];
+			mapRooms(({ room, obj }) => {
 				const edgePoints: IPointData[] = [];
 				const worldPoints = room.points.map(pt => obj.position.add(pt));
 				worldPoints.map((current, index) => {
@@ -123,20 +109,20 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 					}
 				});
 
-				points.push(...worldPoints);
-				points.push(...edgePoints);
+				points.push(...worldPoints.map(point => ({ roomId: room.id, point })));
+				points.push(...edgePoints.map(point => ({ roomId: room.id, point })));
 				return null;
 			});
 			return points;
 		});
-	}, [roomHandles]);
+	}, [mapRooms]);
 
 	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
 		// TODO: implement snap-to-object
 		if (world && penCursor) {
 			const localMouse = e.getLocalPosition(world);
 			if (snapEnabled) {
-				const closestSnap = snapPointToArray(localMouse, snapPoints);
+				const closestSnap = snapPointToArray(localMouse, snapPoints.map((({ point }) => point)));
 				if (closestSnap.distance > 50) {
 					penCursor.position.copyFrom(localMouse);
 				} else {
@@ -152,17 +138,32 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 	useEffect(() => {
 		if (pathDots && pathDots.length == 2 && world && viewport) {
 			const referenceRadius = 8 * viewport.scale.x;
-			const dot1 = pathDots[0];
-			const dot2 = pathDots[1];
-			const newPath = new ExtendedGraphics()
-				.lineStyle({ alignment: 0.5, width: 4, color: "black" })
-				.moveToPoint(dot1.position.subtract({ x: referenceRadius, y: referenceRadius }))
-				.lineToPoint(dot2.position.subtract({ x: referenceRadius, y: referenceRadius }));
-			console.log(newPath);
-			world.addChild(newPath);
+			const { roomId: id1, dot: dot1 } = pathDots[0];
+			const { roomId: id2, dot: dot2 } = pathDots[1];
+
+			const room1 = findRoom(({ room }) => room.id === id1);
+			const room2 = findRoom(({ room }) => room.id === id2);
+			const offset: IPointData = { x: referenceRadius, y: referenceRadius };
+			if (!(room1 && room2)) {
+				throw new Error(`Error: Rooms ${[room1, room2].filter(r => !r)} do not exist.`);
+			}
+
+			const link1 = room1.obj.toLocal(dot1).subtract(offset);
+			const link2 = room2.obj.toLocal(dot2).subtract(offset);
+
+			link([
+				{
+					roomId: id1,
+					point: link1
+				},
+				{
+					roomId: id2,
+					point: link2
+				}
+			]);
 			setPathDots(null);
 		}
-	}, [world, pathDots, viewport]);
+	}, [world, pathDots, viewport, link, findRoom]);
 
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -189,21 +190,32 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 		if (world && viewport && enabled && penCursor && !cursorOverUI) {
 			const referenceRadius = 8 * viewport.scale.x;
 			if (e.button === 0) {
-				if (pathDots && pathDots.length > 0) {
-					if (collisionTest(pathDots[0], penCursor) && pathDots.length > 2) {
-						placementLine.clear();
-					} else {
-						placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)));
+				const closestSnap = snapPointToArray(penCursor.position, snapPoints.map((({ point }) => point)));
+				const closestRoomId = snapPoints.find(({ point }) =>
+					point.x === closestSnap.point.x && point.y === closestSnap.point.y
+				)?.roomId;
+				try {
+					if (!closestRoomId) {
+						throw new Error("Cannot draw path to nothing.");
 					}
-				} else {
-					placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)));
-				}
-			}
 
-			// setCursor("none");
+					if (pathDots && pathDots.length > 0) {
+						if (collisionTest(pathDots[0].dot, penCursor) && pathDots.length > 2) {
+							placementLine.clear();
+						} else {
+							placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)), closestRoomId);
+						}
+					} else {
+						placeDot(penCursor.position.add(new Point(referenceRadius, referenceRadius)), closestRoomId);
+					}
+				} catch (err) {
+					console.error(err);
+				}
+
+			}
 			penCursor.visible = true;
 		}
-	}, [world, viewport, enabled, penCursor, cursorOverUI, pathDots, placementLine, placeDot]);
+	}, [world, viewport, enabled, penCursor, cursorOverUI, snapPoints, pathDots, placementLine, placeDot]);
 
 	// key events
 	const bind = useBindings();
@@ -214,7 +226,7 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 	// deletes build dots on mode change
 	useEffect(() => {
 		if (!enabled) {
-			pathDots?.map(dot => dot.destroy());
+			pathDots?.map(({ dot }) => dot.destroy());
 			setPathDots(null);
 		}
 	}, [pathDots, enabled]);
@@ -227,7 +239,7 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles }: Use
 				worldDots.map(obj => obj.destroy());
 			} else {
 				worldDots
-					.filter(obj => !pathDots.includes(obj as Graphics))
+					.filter(obj => !pathDots.find(({ dot }) => dot == obj))
 					.map(obj => obj.destroy());
 			}
 		}

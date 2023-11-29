@@ -1,5 +1,5 @@
-import { Container, DisplayObject } from "pixi.js";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { DisplayObject } from "pixi.js";
+import { useCallback } from "react";
 import { BarrierObject } from "../components/canvas/BarrierObject";
 import { SwitchObject } from "../components/canvas/SwitchObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
