@@ -106,6 +106,14 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 							interpolatePoint(current, next, 0.66),
 							interpolatePoint(current, next, 0.75),
 						);
+					} else {
+						// handles case for final point => first point
+						edgePoints.push(
+							interpolatePoint(current, worldPoints[0], 0.33),
+							interpolatePoint(current, worldPoints[0], 0.50),
+							interpolatePoint(current, worldPoints[0], 0.66),
+							interpolatePoint(current, worldPoints[0], 0.75),
+						);
 					}
 				});
 
