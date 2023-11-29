@@ -174,6 +174,8 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 					penCursor.visible = false;
 				}
 
+			} else {
+				setCursor("none");
 			}
 		}
 	}, [enabled, penCursor, setCursor, world]);
