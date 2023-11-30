@@ -186,12 +186,16 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 	}, [enabled, penCursor, setCursor, world]);
 
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
+		if (e.button != 1) {
+			setCursor("none");
+		}
+		
 		if (world && enabled && penCursor && viewport) {
 			if (penCursor.parent != world) { world.addChild(penCursor); }
 			syncCursor(e);
 			drawPlacementLine();
 		}
-	}, [world, enabled, penCursor, viewport, syncCursor, drawPlacementLine]);
+	}, [world, enabled, penCursor, viewport, setCursor, syncCursor, drawPlacementLine]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && viewport && enabled && penCursor && !cursorOverUI) {
