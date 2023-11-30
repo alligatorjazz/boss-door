@@ -10,6 +10,7 @@ import { useRooms } from "../hooks/useRooms";
 import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
+import { SubMenu } from "../components/ui/SubMenu";
 
 export function Edit() {
 	const uiRef = useRef<HTMLDivElement>(null);
@@ -60,15 +61,19 @@ export function Edit() {
 		}
 	}, [capturePointer]);
 
-
 	return (
 		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
-					<div ref={uiRef} className="h-full flex flex-col">
-						<ModeSelect className="flex-1" />
-						<div>floor: {activeFloor}</div>
+					<div ref={uiRef} className="h-full flex flex-row w-min">
+						<ModeSelect className="flex-1 h-full" />
+						<SubMenu enabled={mode === "key"} width={"300px"}>
+							keys
+						</SubMenu>
+						<SubMenu enabled={mode === "lock"} width={"300px"}>
+							locks
+						</SubMenu>
 					</div>
 				</section>
 			</div>

@@ -6,6 +6,20 @@ import { useNodes } from "../hooks/useNodes";
 import { MapNode } from "../lib/nodes";
 import { useRooms } from "../hooks/useRooms";
 
+export type CSSDimension =
+	| "auto"
+	| "inherit"
+	| "initial"
+	| "fit-content"
+	| "max-content"
+	| "min-content"
+	| "unset"
+	| `${number}px`
+	| `${number}vw`
+	| `${number}vh`
+	| `${number}dvw`
+	| `${number}dvh`;
+
 export type Empty = Record<string, never>
 
 export type CanvasOptions = Partial<IApplicationOptions> & {
@@ -32,8 +46,8 @@ export type ViewHook<T extends object = object, K extends object = object> = (op
 export type ArrayElement<ArrayType extends readonly unknown[]> =
 	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
-export type EditMode = "move" | "build" | "path";
-export type DrawActions = Pick<ReturnType<typeof useNodes>, "add" | "remove" | "removeAll">;
+export type EditMode = "move" | "build" | "path" | "key" | "lock";
+export type DrawActions = Pick<ReturnType<typeof useNodes>, "create">;
 export type WithoutDrawActions<T> = Omit<T, "add" | "remove" | "removeAll">;
 
 export type BuildActions = Pick<ReturnType<typeof useRooms>, "add" | "remove">;

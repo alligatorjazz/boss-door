@@ -20,6 +20,7 @@ interface Props {
 	roomHandles: ReturnType<typeof useRooms>;
 	pathHandles: ReturnType<typeof usePaths>;
 }
+
 export function Editor({ world, viewport, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }: Props) {
 	const baseCellSize = 16;
 	const grid = useGrid({ world, baseCellSize, color: "lightgray", levels: 16, viewport });

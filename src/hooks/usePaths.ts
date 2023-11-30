@@ -15,8 +15,8 @@ export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 		const prev = world?.children.find(obj => obj.name == "pathLayer");
 		const graphics = prev ?? new ExtendedGraphics();
 		graphics.name = "pathLayer";
-		if (graphics.parent != world) { 
-			world?.addChild(graphics); 
+		if (graphics.parent != world) {
+			world?.addChild(graphics);
 		}
 		return graphics as ExtendedGraphics;
 	}, [world]);
@@ -49,9 +49,7 @@ export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 	}, [pathLayer, paths, world?.children]);
 
 	// draw paths
-	useEffect(() => {
-		drawPaths();
-	}, [drawPaths, pathLayer, paths, rooms]);
+	useEffect(() => { drawPaths(); }, [drawPaths, pathLayer, paths, rooms]);
 
 	// create handles to add / sever paths
 	const link = useCallback((between: DungeonPath["between"]) => {
@@ -78,5 +76,5 @@ export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 		}
 	}, [setPaths]);
 
-	return { link, sever, drawPaths, changePathNode };
+	return { link, sever, drawPaths, changePathNode, paths: (paths as Readonly<typeof paths>) };
 }

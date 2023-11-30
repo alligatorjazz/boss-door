@@ -12,7 +12,7 @@ import { useNodes } from "./useNodes";
 import { usePaths } from "./usePaths";
 import { useRooms } from "./useRooms";
 
-type UseBuildOptions = {
+type UsePenOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
@@ -21,7 +21,7 @@ type UseBuildOptions = {
 	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
-export function usePen({ world, enabled, viewport, setCursor, roomHandles: { find: findRoom, map: mapRooms }, pathHandles: { link } }: UseBuildOptions) {
+export function usePen({ world, enabled, viewport, setCursor, roomHandles: { find: findRoom, map: mapRooms }, pathHandles: { link } }: UsePenOptions) {
 	const [pathDots, setPathDots] = useState<{ roomId: string, dot: Graphics }[] | null>();
 	const [snapEnabled] = useState(true);
 	const [snapPoints, setSnapPoints] = useState<{ roomId: string, point: IPointData }[]>([]);

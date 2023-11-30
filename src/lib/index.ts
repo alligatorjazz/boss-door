@@ -125,3 +125,11 @@ export function max(array: number[]) {
 
 	return max;
 }
+
+export function calculateMidpoint(point1: IPointData, point2: IPointData): IPointData {
+	const midpoint = {
+		x: (point1.x + point2.x) / 2,
+		y: (point1.y + point2.y) / 2,
+	};
+	return midpoint;
+}
