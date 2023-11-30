@@ -21,9 +21,7 @@ type UseBuildOptions = {
 	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
-// TODO: make work / disable dupes
 export function usePen({ world, enabled, viewport, setCursor, roomHandles: { find: findRoom, map: mapRooms }, pathHandles: { link } }: UseBuildOptions) {
-	// TODO: adjust for erroneous pencursor position / point placement
 	const [pathDots, setPathDots] = useState<{ roomId: string, dot: Graphics }[] | null>();
 	const [snapEnabled] = useState(true);
 	const [snapPoints, setSnapPoints] = useState<{ roomId: string, point: IPointData }[]>([]);
@@ -126,7 +124,6 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 	}, [mapRooms]);
 
 	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
-		// TODO: implement snap-to-object
 		if (world && penCursor) {
 			const localMouse = e.getLocalPosition(world);
 			if (snapEnabled) {

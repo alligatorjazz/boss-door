@@ -9,7 +9,7 @@ type UseRoomsOptions = {
 	readonly rooms: DungeonRoom[];
 	setRooms: CustomDispatch<DungeonRoom[]>;
 }
-// TODO: implement usePaths, then add to usePen
+
 export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 	const getObject = useCallback((room: DungeonRoom) => {
 		return world?.children.find(obj => obj.name === room.id) as Graphics | undefined;

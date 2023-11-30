@@ -21,7 +21,6 @@ type UseBuildOptions = {
 export function useBuild({ world, enabled, viewport, minCellSize, setCursor, roomHandles }: UseBuildOptions) {
 	const [buildDots, setBuildDots] = useState<Graphics[] | null>();
 	const [snapEnabled, setSnapEnabled] = useState(false);
-	// TODO: connect to useGrid and enable adaptive snap
 	const { cursorOverUI } = useContext(DungeonContext);
 
 	// disables cursor so pseudo-cursor can be enabled

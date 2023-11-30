@@ -13,7 +13,6 @@ const JsonSchema: z.ZodType<Json> = z.lazy(() =>
 const MapNodeTypeSchema = z.enum(["entrance", "objective", "switch", "barrier"]);
 type MapNodeType = z.infer<typeof MapNodeTypeSchema>;
 type DerivedObjectState = ["position", ...(keyof DisplayObject)[]];
-// TODO: turn derive into object of booleans
 const derive = <T extends DerivedObjectState>(keys: ZodEnum<T>): ZodEnum<T> => {
 	return keys;
 };

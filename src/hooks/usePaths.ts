@@ -10,7 +10,6 @@ type UsePathsOptions = {
 	setPaths: CustomDispatch<DungeonPath[]>;
 }
 
-// TODO: implement usePaths, then add to usePen
 export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 	const pathLayer = useMemo(() => {
 		const prev = world?.children.find(obj => obj.name == "pathLayer");

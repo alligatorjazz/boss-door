@@ -201,7 +201,6 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 			];
 
 			setSelected(() => {
-				// TODO: add support for alt-select
 				setSelectOrigin(null);
 				setSelectTerminus(null);
 				return newSelections;
