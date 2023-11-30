@@ -51,7 +51,7 @@ export function Edit() {
 	}, []);
 
 	useEffect(() => {
-		console.log(paths);
+		console.log(JSON.stringify(paths, null, 4));
 	}, [paths]);
 
 	useEffect(() => {
