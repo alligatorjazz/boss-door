@@ -191,12 +191,12 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 		if (selectOrigin && selectTerminus && world) {
 			const newSelections = [
 				...roomHandles.filter(({ obj }) => {
-					const global = obj.getGlobalPosition();
-					const comparePoint = new Point(
-						global.x - obj.pivot.x,
-						global.y - obj.pivot.y
+					const bounds = obj.getBounds();
+					const center = new Point(
+						bounds.left + (bounds.width / 2),
+						bounds.top + (bounds.height / 2)
 					);
-					return obj && selectorRect.containsPoint(comparePoint);
+					return obj && selectorRect.containsPoint(center);
 				})
 			];
 
