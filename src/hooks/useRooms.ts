@@ -25,7 +25,7 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 				}
 
 				const newData = cb(room);
-				console.log("setting room data: ", newData);
+				// console.log("setting room data: ", newData);
 				return [...prev.slice(0, index), newData, ...prev.slice(index + 1, prev.length)];
 			});
 		};
@@ -83,7 +83,7 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 					const nodeObject = world?.children.find(obj => obj.name === node.id) ?? createNodeObject(node);
 					nodeContainer.addChild(nodeObject);
 				}
-				room.obj.removeChildren();
+				room.obj.removeChildren().map(child => child.destroy());
 				room.obj.addChild(nodeContainer);
 			}
 		});

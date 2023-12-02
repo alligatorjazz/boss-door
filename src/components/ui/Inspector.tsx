@@ -1,21 +1,24 @@
 import { HTMLAttributes, useContext, useMemo } from "react";
-import { CSSDimension } from "../../types";
+import { useRooms } from "../../hooks/useRooms";
+import { RoomHandle } from "../../lib/rooms";
 import { DungeonContext } from "../../routes/Edit.lib";
-import { RoomInspect } from "./RoomInspect";
+import { CSSDimension } from "../../types";
 import { InspectorHandles } from "./Inspector.lib";
+import { RoomInspect } from "./RoomInspect";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
 	enabled: boolean;
 	width: CSSDimension;
+	roomHandles: ReturnType<typeof useRooms>;
 }
 
-export function Inspector({ enabled, width, className }: Props) {
+export function Inspector({ enabled, width, className, roomHandles }: Props) {
 	const { selected } = useContext(DungeonContext);
-	const modules = useMemo(() => selected.map((room, index) => {
-		console.log("building modules for room: ", room);
+	const modules = useMemo(() => selected.map((target, index) => {
+		const room = roomHandles.find(handle => handle.data.id === target.data.id) as RoomHandle;
 		const roomInspect: InspectorHandles<"room"> = {
 			name: room.data.name ?? "",
-			setName: (name: string) => room.set(prev => ({ ...prev, name })),
+			setName: (name: string) => { room.set(prev => ({ ...prev, name })); },
 			delete: () => console.warn("unimplemented")
 		};
 
@@ -38,7 +41,7 @@ export function Inspector({ enabled, width, className }: Props) {
 		});
 
 		return <RoomInspect key={index} roomInspect={roomInspect} keysInspect={keysInspect} />;
-	}), [selected]);
+	}), [selected, roomHandles]);
 
 	return (
 		<div

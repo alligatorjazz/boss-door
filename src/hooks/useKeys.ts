@@ -48,7 +48,7 @@ export function useKeys({
 		container.zIndex = 100;
 		container.alpha = 0.5;
 		world?.addChild(container);
-		console.log(container);
+		// console.log(container);
 		return container;
 	}, [world]);
 

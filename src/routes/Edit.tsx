@@ -27,9 +27,7 @@ export function Edit() {
 	const { rooms, setRooms, paths, setPaths } = useMemo(() => {
 		return dungeon.getFloorHandles(activeFloor);
 	}, [activeFloor, dungeon]);
-	useEffect(() => {
-		console.log(rooms);
-	}, [rooms]);
+
 	const bindings: KeyBindings = useMemo(() => {
 		return {
 			"escape": { key: Key.Escape },
@@ -57,7 +55,7 @@ export function Edit() {
 	}, []);
 
 	useEffect(() => {
-		console.log(world?.children.map(child => ({ [child.name ?? crypto.randomUUID()]: child })));
+		// console.log(world?.children.map(child => ({ [child.name ?? crypto.randomUUID()]: child })));
 	}, [paths, world?.children]);
 
 	useEffect(() => {
@@ -81,7 +79,7 @@ export function Edit() {
 							</SubMenu>
 						</div>
 						<div ref={inspectorRef} className="h-full flex flex-row w-min">
-							<Inspector enabled={mode === "move" && selected.length > 0} width={"300px"} />
+							<Inspector roomHandles={roomHandles} enabled={mode === "move" && selected.length > 0} width={"300px"} />
 						</div>
 					</div>
 				</section>

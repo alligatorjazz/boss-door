@@ -21,7 +21,9 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
-
+	useEffect(() => {
+		console.log("selections: ", selected);
+	}, [selected]);
 	useEffect(() => {
 		if (enabled && world) {
 			setCursor("default");
@@ -58,6 +60,8 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 	}, [world]);
 
 	const outlineSelections = useCallback(() => {
+		console.count("outlined selections");
+		console.trace();
 		if (selected) {
 			selectedRect.clear();
 			selected.map(({ obj }) => {

@@ -18,7 +18,7 @@ export function createRoom({ points }: Pick<DungeonRoom, "points">): DungeonRoom
 
 	return {
 		id: crypto.randomUUID(),
-		name: null,
+		name: "Room",
 		points: relativePoints,
 		position: center,
 		nodes: []
