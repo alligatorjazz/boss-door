@@ -15,16 +15,18 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 	const getObject = useCallback((room: DungeonRoom) => {
 		return world?.children.find(obj => obj.name === room.id) as Graphics | undefined;
 	}, [world?.children]);
+
 	const setRoom = useCallback((room: DungeonRoom) => {
 		return (cb: (prev: DungeonRoom) => DungeonRoom) => {
-			const mutatedData = cb(room);
-
 			setRooms(prev => {
-				const index = prev.indexOf(room);
+				const index = prev.findIndex(data => data.id === room.id);
 				if (index === -1) {
 					throw new Error("Tried to set room that does not exist.");
 				}
-				return [...prev.slice(0, index), mutatedData, ...prev.slice(index + 1, prev.length)];
+
+				const newData = cb(room);
+				console.log("setting room data: ", newData);
+				return [...prev.slice(0, index), newData, ...prev.slice(index + 1, prev.length)];
 			});
 		};
 	}, [setRooms]);
@@ -37,7 +39,7 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 
 	const map = useCallback((cb: (handle: RoomHandle, index?: number, arr?: RoomHandle[]) => ReactNode | void) => {
 		return (rooms.map(data => ({
-			data, get obj() { return getObject(data); },
+			get data() { return rooms.find(room => room.id === data.id); }, get obj() { return getObject(data); },
 			set: setRoom(data)
 		})) as RoomHandle[])
 			.map(cb);
@@ -45,7 +47,7 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 
 	const filter = useCallback((cb: (handle: RoomHandle, index?: number, arr?: RoomHandle[]) => boolean) => {
 		return (rooms.map(data => ({
-			data, get obj() { return getObject(data); },
+			get data() { return rooms.find(room => room.id === data.id); }, get obj() { return getObject(data); },
 			set: setRoom(data)
 		})) as RoomHandle[])
 			.filter(cb);
@@ -53,7 +55,7 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 
 	const find = useCallback((cb: (handle: RoomHandle, index?: number, arr?: RoomHandle[]) => boolean) => {
 		return (rooms.map(data => ({
-			data, get obj() { return getObject(data); },
+			get data() { return rooms.find(room => room.id === data.id); }, get obj() { return getObject(data); },
 			set: setRoom(data)
 		})) as RoomHandle[])
 			.find(cb);
@@ -66,11 +68,11 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 		setRooms(prev => [...prev, data]);
 		world?.addChild(RoomObject(data));
 		return {
-			data, get obj() {
+			get data() { return rooms.find(room => room.id === data.id); }, get obj() {
 				return world?.children.find(obj => obj.name === data.id) as Graphics | undefined;
 			}
 		} as RoomHandle;
-	}, [setRooms, world]);
+	}, [rooms, setRooms, world]);
 
 
 	useEffect(() => {
@@ -81,14 +83,8 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 					const nodeObject = world?.children.find(obj => obj.name === node.id) ?? createNodeObject(node);
 					nodeContainer.addChild(nodeObject);
 				}
-
-				const bounds = nodeContainer.getBounds();
-				// nodeContainer.pivot.set(
-				// 	-bounds.width / 2,
-				// 	-bounds.height / 2
-				// );
+				room.obj.removeChildren();
 				room.obj.addChild(nodeContainer);
-				console.log("added node to room");
 			}
 		});
 	}, [map, world?.children]);

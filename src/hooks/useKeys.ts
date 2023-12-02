@@ -96,12 +96,15 @@ export function useKeys({
 				));
 				if (roomTarget) {
 					const newNode = createNode({ type: "key" });
-					roomTarget.set(prev => {
-						const nodes = Array.from(new Set([...prev.nodes, newNode]));
-						return { ...prev, nodes };
+					setMode(() => {
+						roomTarget.set(prev => {
+							const nodes = Array.from(new Set([...prev.nodes, newNode]));
+							const newRoom = { ...prev, nodes };
+							setSelected([{...roomTarget, data: newRoom}]);
+							return newRoom;
+						});
+						return "move";
 					});
-					setSelected([roomTarget]);
-					setMode("move");
 				}
 			}
 		}

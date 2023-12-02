@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Key } from "ts-key-enum";
 import { Editor } from "../components/ui/Editor";
 import { Inspector } from "../components/ui/Inspector";
-import { KeyInspect } from "../components/ui/KeyInspect";
 import { ModeSelect } from "../components/ui/ModeSelect";
 import { SubMenu } from "../components/ui/SubMenu";
 import { TopMenu } from "../components/ui/TopMenu";
@@ -10,10 +9,10 @@ import { useCanvas } from "../hooks/useCanvas";
 import { useDungeon } from "../hooks/useDungeon";
 import { usePaths } from "../hooks/usePaths";
 import { useRooms } from "../hooks/useRooms";
+import { RoomHandle } from "../lib/rooms";
 import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
-import { RoomHandle } from "../lib/rooms";
 
 export function Edit() {
 	const toolsRef = useRef<HTMLDivElement>(null);
@@ -23,12 +22,14 @@ export function Edit() {
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 	const [activeFloor] = useState(0);
 	const [selected, setSelected] = useState<(RoomHandle)[]>([]);
-	
+
 	const dungeon = useDungeon();
 	const { rooms, setRooms, paths, setPaths } = useMemo(() => {
 		return dungeon.getFloorHandles(activeFloor);
 	}, [activeFloor, dungeon]);
-
+	useEffect(() => {
+		console.log(rooms);
+	}, [rooms]);
 	const bindings: KeyBindings = useMemo(() => {
 		return {
 			"escape": { key: Key.Escape },
@@ -69,7 +70,7 @@ export function Edit() {
 	return (
 		<DungeonContext.Provider value={{ selected, setSelected, mode, setMode, cursorOverUI, bindings, app }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
-				<Editor {...{ viewport, world, setCursor,  mode, windowRef, roomHandles, pathHandles }} />
+				<Editor {...{ viewport, world, setCursor, mode, windowRef, roomHandles, pathHandles }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<TopMenu mode={mode} />
 					<div className="h-full w-full flex flex-row justify-between">
@@ -80,9 +81,7 @@ export function Edit() {
 							</SubMenu>
 						</div>
 						<div ref={inspectorRef} className="h-full flex flex-row w-min">
-							<Inspector enabled={mode === "move"} width={"300px"} >
-								<KeyInspect />
-							</Inspector>
+							<Inspector enabled={mode === "move" && selected.length > 0} width={"300px"} />
 						</div>
 					</div>
 				</section>

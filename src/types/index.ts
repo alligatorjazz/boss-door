@@ -2,7 +2,7 @@ import { Viewport } from "pixi-viewport";
 import { Application, Container, DisplayObject, IApplicationOptions, ICanvas, IPointData } from "pixi.js";
 import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
-import { MapNode } from "../lib/nodes";
+import { MapNode, MapNodes } from "../lib/nodes";
 
 export type CSSDimension =
 	| "auto"
@@ -49,7 +49,7 @@ export type EditMode = "move" | "build" | "path" | "key" | "lock";
 export type Grid = ReturnType<typeof useGrid>;
 export type DungeonPath = {
 	id: string;
-	nodes: MapNode[],
+	nodes: MapNodes<"lock">[],
 	// relative to room position
 	between: [{
 		roomId: string,
@@ -62,8 +62,9 @@ export type DungeonPath = {
 
 export type DungeonRoom = {
 	id: string;
+	name: string | null;
 	points: IPointData[];
-	nodes: MapNode[];
+	nodes: MapNodes<"key">[];
 	position: IPointData;
 }
 
