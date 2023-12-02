@@ -69,7 +69,7 @@ const LockNodeSchema = defineMapNode(z.literal("lock"), {
 const KeyNodeSchema = defineMapNode(z.literal("key"), {
 	derived: defaultDerive,
 	internal: z.object({
-		lockId: z.string().nullish(),
+		tag: z.string().nullish(),
 		color: z.string()
 	})
 });
@@ -179,9 +179,9 @@ export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: Matcha
 			// attempt to find an existing lock with no key attached
 			const autoMatch = matchAgainst?.find(value => {
 				if (value.type === "lock") {
-					const { id: lockId } = value;
+					const { id: tag } = value;
 					const matchingKey = matchAgainst.find(value => {
-						if (value.type === "key" && value.state.internal.lockId === lockId) {
+						if (value.type === "key" && value.state.internal.tag === tag) {
 							return value;
 						}
 					});
@@ -197,7 +197,7 @@ export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: Matcha
 					...node.state,
 					internal: {
 						...node.state.internal,
-						lockId: autoMatch?.id,
+						tag: autoMatch?.id,
 						color: autoMatch?.state.internal?.color ?? randomColor()
 					}
 				}
@@ -206,7 +206,7 @@ export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: Matcha
 		case "lock": {
 			// attempt to find an existing key with no lock attached
 			const autoMatch = matchAgainst?.find(value => {
-				if (value.type === "key" && !value.state.internal.lockId) {
+				if (value.type === "key" && !value.state.internal.tag) {
 					return value;
 				}
 			}) as MapNodes<"key"> | null;

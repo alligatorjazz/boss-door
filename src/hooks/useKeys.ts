@@ -1,14 +1,14 @@
 import { Viewport } from "pixi-viewport";
 import { Container, FederatedPointerEvent, IPoint, IPointData } from "pixi.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { NodeObject } from "../components/canvas/NodeObject";
+import { calculateMidpoint, snapPointToArray } from "../lib";
 import { DungeonContext } from "../routes/Edit.lib";
 import { WithoutDrawActions } from "../types";
 import { useBindings } from "./useBindings";
 import { useNodes } from "./useNodes";
 import { usePaths } from "./usePaths";
 import { useRooms } from "./useRooms";
-import { calculateMidpoint, snapPointToArray } from "../lib";
-import { MapNode } from "../lib/nodes";
 
 type UseKeysOptions = {
 	world?: Container | null;
@@ -28,15 +28,14 @@ export function useKeys({
 	pathHandles: { paths }
 }: UseKeysOptions) {
 	const [snapPoints, setSnapPoints] = useState<{ linkedId: string, point: IPointData }[]>([]);
-	const [queuedNode, setQueuedNode] = useState<MapNode | null>(null);
 	const { cursorOverUI } = useContext(DungeonContext);
 
 	// initializes cursor state
 	useEffect(() => {
-		if (enabled && world && queuedNode) {
+		if (enabled && world) {
 			setCursor("none");
 		}
-	}, [enabled, queuedNode, setCursor, world]);
+	}, [enabled, setCursor, world]);
 
 	// recalculates valid snap points based on number of roomHandles 
 	useEffect(() => {
@@ -55,8 +54,18 @@ export function useKeys({
 
 	const nodeCursor = useMemo(() => {
 		const prev = world?.children.find(obj => obj.name === "nodeCursor") as Container | undefined;
-		const container = prev ?? new Container();
-		container.name = "nodeCursor";
+		const container = prev ?? NodeObject({
+			bgColor: "black",
+			fgColor: "darkgray",
+			width: 100,
+			shape: "diamond",
+			fontSize: 40,
+			bgOffset: 0.04,
+			iconText: "",
+			id: "nodeCursor"
+		});
+		world?.addChild(container);
+		console.log(container);
 		return container;
 	}, [world]);
 
@@ -77,13 +86,13 @@ export function useKeys({
 		if (world && enabled) {
 			if (e.button === 1) {
 				setCursor("grabbing");
-			} else if (e.button === 0 && queuedNode) {
+			} else if (e.button === 0) {
 				setCursor("none");
 			} else {
 				setCursor("default");
 			}
 		}
-	}, [enabled, queuedNode, setCursor, world]);
+	}, [enabled, setCursor, world]);
 
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (e.button != 1) {
@@ -93,13 +102,11 @@ export function useKeys({
 		if (world && enabled && viewport) {
 			if (e.button === 1) {
 				setCursor("grabbing");
-			} else if (e.button === 0 && queuedNode) {
-				setCursor("none");
 			} else {
-				setCursor("default");
+				syncCursor(e);
 			}
 		}
-	}, [world, enabled, viewport, setCursor, queuedNode]);
+	}, [world, enabled, viewport, setCursor, syncCursor]);
 
 	const handleBuildPointerUp = useCallback((e: FederatedPointerEvent) => {
 		if (world && viewport && enabled && !cursorOverUI) {
@@ -107,7 +114,7 @@ export function useKeys({
 			if (e.button === 1) {
 				setCursor("grabbing");
 			} else {
-				setCursor("default");
+				setCursor("none");
 			}
 		}
 	}, [world, viewport, enabled, cursorOverUI, setCursor]);
@@ -131,6 +138,7 @@ export function useKeys({
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
 			world.on("wheel", syncCursor);
+			console.log("cursor: ", nodeCursor);
 		}
 
 		return () => {
@@ -140,5 +148,5 @@ export function useKeys({
 			world?.removeListener("pointerupoutside", handleBuildPointerUp);
 			world?.removeListener("wheel", syncCursor);
 		};
-	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, syncCursor, world]);
+	}, [enabled, handleBuildPointerDown, handleBuildPointerMove, handleBuildPointerUp, nodeCursor, syncCursor, world]);
 }

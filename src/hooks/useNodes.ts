@@ -40,5 +40,5 @@ export function useNodes({ roomHandles, pathHandles }: UseNodesOptions) {
 
 	// const getImage = useCallback
 
-	return { create };
+	// return { create };
 }

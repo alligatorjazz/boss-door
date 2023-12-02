@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Key } from "ts-key-enum";
 import { Editor } from "../components/ui/Editor";
+import { Inspector } from "../components/ui/Inspector";
+import { KeyInspect } from "../components/ui/KeyInspect";
 import { ModeSelect } from "../components/ui/ModeSelect";
+import { SubMenu } from "../components/ui/SubMenu";
+import { TopMenu } from "../components/ui/TopMenu";
 import { useCanvas } from "../hooks/useCanvas";
 import { useDungeon } from "../hooks/useDungeon";
 import { useNodes } from "../hooks/useNodes";
@@ -10,14 +14,12 @@ import { useRooms } from "../hooks/useRooms";
 import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
-import { SubMenu } from "../components/ui/SubMenu";
-import { Inspector } from "../components/ui/Inspector";
 
 export function Edit() {
 	const toolsRef = useRef<HTMLDivElement>(null);
 	const inspectorRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
-	const [mode, setMode] = useState<EditMode>("path");
+	const [mode, setMode] = useState<EditMode>("key");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 	const [activeFloor] = useState(0);
 
@@ -34,7 +36,7 @@ export function Edit() {
 		};
 	}, []);
 
-	const { viewport, world, setCursor } = useCanvas({
+	const { viewport, world, setCursor, app } = useCanvas({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		worldWidth: 10000,
@@ -54,8 +56,8 @@ export function Edit() {
 	}, []);
 
 	useEffect(() => {
-		console.log(JSON.stringify(paths, null, 4));
-	}, [paths]);
+		console.log(world?.children.map(child => ({ [child.name?? crypto.randomUUID()]: child })));
+	}, [paths, world?.children]);
 
 	useEffect(() => {
 		if (toolsRef.current && inspectorRef.current) {
@@ -65,23 +67,23 @@ export function Edit() {
 	}, [capturePointer]);
 
 	return (
-		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
+		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, app }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
-				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none flex flex-row justify-between">
-					<div ref={toolsRef} className="h-full flex flex-row w-min">
-						<ModeSelect className="flex-1 h-full" />
-						<SubMenu enabled={mode === "key"} width={"300px"}>
-							keys
-						</SubMenu>
-						<SubMenu enabled={mode === "lock"} width={"300px"}>
-							locks
-						</SubMenu>
-					</div>
-					<div ref={inspectorRef} className="h-full flex flex-row w-min">
-						<Inspector enabled={true} width={"200px"} >
-							test
-						</Inspector>
+				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
+					<TopMenu mode={mode} />
+					<div className="h-full w-full flex flex-row justify-between">
+						<div ref={toolsRef} className="h-full flex flex-row w-min">
+							<ModeSelect className="flex-1 h-full" />
+							<SubMenu enabled={mode === "lock"} width={"300px"}>
+								locks
+							</SubMenu>
+						</div>
+						<div ref={inspectorRef} className="h-full flex flex-row w-min">
+							<Inspector enabled={mode === "move"} width={"300px"} >
+								<KeyInspect />
+							</Inspector>
+						</div>
 					</div>
 				</section>
 			</div>

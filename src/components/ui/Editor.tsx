@@ -9,6 +9,7 @@ import { EditMode, WithoutDrawActions } from "../../types";
 import { useRooms } from "../../hooks/useRooms";
 import { usePen } from "../../hooks/usePen";
 import { usePaths } from "../../hooks/usePaths";
+import { useKeys } from "../../hooks/useKeys";
 
 interface Props {
 	world?: Container | null;
@@ -27,7 +28,8 @@ export function Editor({ world, viewport, setCursor, nodeHandles, mode, windowRe
 	useSelect({ world, nodeHandles, viewport, enabled: mode === "move", setCursor, roomHandles, pathHandles });
 	useBuild({ world, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, roomHandles });
 	usePen({ world, nodeHandles, enabled: mode === "path", viewport, setCursor, roomHandles, pathHandles });
-
+	useKeys({ world, nodeHandles, enabled: mode === "key", viewport, setCursor, roomHandles, pathHandles });
+	
 	// handling mode changes
 	useEffect(() => {
 		if (world && viewport) {

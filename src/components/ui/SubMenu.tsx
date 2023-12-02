@@ -1,12 +1,12 @@
 import { HTMLAttributes } from "react";
 import { CSSDimension } from "../../types";
 
-interface Props extends HTMLAttributes<HTMLDivElement> {
+export interface SubMenuProps extends HTMLAttributes<HTMLDivElement> {
 	enabled: boolean;
 	width: CSSDimension;
 }
 
-export function SubMenu({ enabled, width, className, children }: Props) {
+export function SubMenu({ enabled, width, className, children }: SubMenuProps) {
 	return (
 		<div
 			style={enabled ? { width } : { width: 0 }}

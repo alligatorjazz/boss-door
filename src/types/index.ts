@@ -88,3 +88,4 @@ export type Dungeon = {
 };
 
 export type CustomDispatch<T> = (value: (T | ((prev: T) => T))) => void;
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
