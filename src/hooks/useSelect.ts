@@ -135,8 +135,8 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 				setCursor("grabbing");
 			}
 		}
-
-	}, [enabled, selectedRect, setCursor, setSelected, world]);
+		outlineSelections();
+	}, [enabled, outlineSelections, selectedRect, setCursor, setSelected, world]);
 
 	const handleSelectPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
@@ -164,6 +164,7 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 				drawPaths();
 			}
 		}
+		outlineSelections();
 	}, [drawPaths, enabled, moveOrigin, outlineSelections, selectOrigin, selected, selectorRect, viewport?.scale.x, world]);
 
 	const handleSelectPointerUp = useCallback((e: FederatedPointerEvent) => {
@@ -177,7 +178,8 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 				setCursor("default");
 			}
 		}
-	}, [enabled, selectOrigin, setCursor, world]);
+		outlineSelections();
+	}, [enabled, outlineSelections, selectOrigin, setCursor, world]);
 
 	useEffect(() => {
 		if (world && !world.children.includes(selectorRect)) {
@@ -208,7 +210,8 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 			selectorRect.clear();
 			selectedRect.clear();
 		}
-	}, [selectOrigin, selectorRect, selectTerminus, world, selectedRect, roomHandles, setSelected]);
+		outlineSelections();
+	}, [selectOrigin, selectorRect, selectTerminus, world, selectedRect, roomHandles, setSelected, outlineSelections]);
 
 	// draws selection outlines around selected objects
 	useEffect(() => {
@@ -235,6 +238,7 @@ export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: 
 			world.on("pointerup", handleSelectPointerUp);
 			world.on("pointerupoutside", handleSelectPointerUp);
 			viewport?.on("zoomed", outlineSelections);
+			outlineSelections();
 		}
 		return () => {
 			world?.removeListener("pointerdown", handleSelectPointerDown);

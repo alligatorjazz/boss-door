@@ -15,7 +15,6 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 export function Inspector({ enabled, width, className, roomHandles }: Props) {
 	const { selected } = useContext(DungeonContext);
 	const modules = useMemo(() => selected.map((target, index) => {
-		console.log("modules for :", target.data);
 		const room = roomHandles.find(handle => handle.data.id === target.data.id) as RoomHandle;
 		const roomInspect: InspectorHandles<"room"> = {
 			name: room.data.name ?? "",
