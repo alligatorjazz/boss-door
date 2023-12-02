@@ -20,7 +20,7 @@ export function NodeObject(props: NodeObjectProps) {
 	const height = props.height ?? width;
 
 	const container = new Container();
-	container.pivot.set(width / 2, height / 2);
+	// container.pivot.set(width / 2, height / 2);
 
 	const bgOffset = props.bgOffset ?? 0.02;
 	const sizeOffset = props.sizeOffset ?? 0.92;
@@ -83,7 +83,7 @@ export function NodeObject(props: NodeObjectProps) {
 	container.addChild(fg);
 
 	if ("iconText" in props) {
-		const text = new Text(props.iconText, new TextStyle({
+		const text = new Text(props.iconText.charAt(0).toUpperCase(), new TextStyle({
 			align: "center",
 			fontFamily: "Poppins",
 			fontSize: props.fontSize ?? 20

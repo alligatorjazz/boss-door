@@ -1,26 +1,22 @@
-import { Container, FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
-import { useState, useMemo, useCallback, useEffect, useContext } from "react";
 import { Viewport } from "pixi-viewport";
-import { useNodes } from "./useNodes";
-import { useBindings } from "./useBindings";
-import { WithoutBuildActions, WithoutDrawActions } from "../types";
-import { useRooms } from "./useRooms";
-import { RoomHandle } from "../lib/rooms";
-import { usePaths } from "./usePaths";
+import { Container, FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { DungeonContext } from "../routes/Edit.lib";
+import { useBindings } from "./useBindings";
+import { usePaths } from "./usePaths";
+import { useRooms } from "./useRooms";
 
 type UseSelectOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
-	roomHandles: WithoutBuildActions<ReturnType<typeof useRooms>>;
+	roomHandles: ReturnType<typeof useRooms>;
 	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
 
 const selectColor = "#0253f5";
-export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, pathHandles: { drawPaths }, setCursor }: UseSelectOptions) {
+export function useSelect({ world, enabled, viewport, roomHandles, pathHandles: { drawPaths }, setCursor }: UseSelectOptions) {
 	const { selected, setSelected } = useContext(DungeonContext);
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
@@ -138,7 +134,7 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 			}
 		}
 
-	}, [enabled, selectedRect, setCursor, world]);
+	}, [enabled, selectedRect, setCursor, setSelected, world]);
 
 	const handleSelectPointerMove = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
@@ -210,7 +206,7 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 			selectorRect.clear();
 			selectedRect.clear();
 		}
-	}, [nodeHandles, selectOrigin, selectorRect, selectTerminus, world, selectedRect, roomHandles]);
+	}, [selectOrigin, selectorRect, selectTerminus, world, selectedRect, roomHandles, setSelected]);
 
 	// draws selection outlines around selected objects
 	useEffect(() => {
@@ -219,14 +215,14 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 		} else {
 			selectedRect.clear();
 		}
-	}, [nodeHandles, outlineSelections, selected, selectedRect, world]);
+	}, [outlineSelections, selected, selectedRect, world]);
 
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
 		// clears selection on secape
 		bind("escape", () => setSelected([]));
-	}, [bind]);
+	}, [bind, setSelected]);
 
 
 	// registers event listeners

@@ -10,6 +10,8 @@ export function RoomObject({ id, points, position }: Pick<DungeonRoom, "id" | "p
 		.drawPolygon(points)
 		.endFill();
 
+	const center = new Graphics().beginFill("magenta").drawCircle(0, 0, 8);
+	graphics.addChild(center);
 	graphics.name = id;
 	graphics.position.copyFrom(position);
 	return graphics;

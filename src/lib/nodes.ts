@@ -2,6 +2,9 @@ import { DisplayObject } from "pixi.js";
 import { AnyZodObject, ZodEnum, ZodLiteral, ZodNull, ZodOptional, z } from "zod";
 import { randomColor, toTitleCase } from ".";
 import { ArrayElement } from "../types";
+import { KeyObject } from "../components/canvas/KeyObject";
+import { LockObject } from "../components/canvas/LockObject";
+import { TerminalObject } from "../components/canvas/TerminalObject";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
@@ -170,6 +173,30 @@ export function createNode<T extends MapNodeType>({ type, name }: CreateNodeOpti
 			throw new Error("Invalid node type: " + type);
 		}
 	}
+}
+
+export function createNodeObject(node: MapNode): DisplayObject {
+	let obj: DisplayObject;
+	switch (node.type) {
+		case "entrance": {
+			obj = TerminalObject(node);
+			break;
+		}
+		case "objective": {
+			obj = TerminalObject(node);
+			break;
+		}
+		case "key": {
+			obj = KeyObject(node);
+			break;
+		}
+		case "lock": {
+			obj = LockObject(node);
+			break;
+		}
+	}
+
+	return obj;
 }
 
 type MatchableNode = MapNodes<"lock"> | MapNodes<"key">

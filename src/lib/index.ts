@@ -21,7 +21,8 @@ export function updatePixiChildren(container: Container, ...children: ReactEleme
 
 export const randomColor = () => "#" + new Array(6).fill("1234567890ABCDEF".charAt(Math.floor(16 * Math.random()))).join("");
 
-export const standardNodeWidth = 128;
+export const standardNodeWidth = 64;
+export const standardNodeFontSize = 24;
 export function toTitleCase(str: string) {
 	return str.replace(
 		/\w\S*/g,
@@ -137,7 +138,8 @@ export function calculateMidpoint(point1: IPointData, point2: IPointData): IPoin
 
 export function getInaccessibilityPole(points: IPointData[]) {
 	const arrayPoints = points.map(point => [point.x, point.y]);
-	return polylabel([arrayPoints]);
+	const pole = polylabel([arrayPoints]);
+	return new Point(pole[0], pole[1]);
 }
 
 // export function toTitleCase(str: string) {

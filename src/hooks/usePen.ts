@@ -6,9 +6,7 @@ import { BuildDot } from "../components/canvas/BuildDot";
 import { Pen } from "../components/canvas/Pen";
 import { collisionTest, interpolatePoint, snapPointToArray } from "../lib";
 import { DungeonContext } from "../routes/Edit.lib";
-import { WithoutDrawActions } from "../types";
 import { useBindings } from "./useBindings";
-import { useNodes } from "./useNodes";
 import { usePaths } from "./usePaths";
 import { useRooms } from "./useRooms";
 
@@ -16,7 +14,6 @@ type UsePenOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	roomHandles: ReturnType<typeof useRooms>;
 	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
@@ -92,11 +89,11 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 			// get a list of all snap points: 
 			// corners, edges @ 33%, edges @ 50%, edges @66%, edges @75%
 			const points: (typeof snapPoints) = [];
-			mapRooms(({ room, obj }) => {
+			mapRooms(({ data, obj }) => {
 				const edgePoints: IPointData[] = [];
-				const worldPoints = room.points.map(pt => obj.position.add(pt));
+				const worldPoints = data.points.map(pt => obj.position.add(pt));
 				worldPoints.map((current, index) => {
-					if (index < room.points.length - 1) {
+					if (index < data.points.length - 1) {
 						const next = worldPoints[index + 1];
 						edgePoints.push(
 							interpolatePoint(current, next, 0.33),
@@ -115,8 +112,8 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 					}
 				});
 
-				points.push(...worldPoints.map(point => ({ roomId: room.id, point })));
-				points.push(...edgePoints.map(point => ({ roomId: room.id, point })));
+				points.push(...worldPoints.map(point => ({ roomId: data.id, point })));
+				points.push(...edgePoints.map(point => ({ roomId: data.id, point })));
 				return null;
 			});
 			return points;
@@ -146,8 +143,8 @@ export function usePen({ world, enabled, viewport, setCursor, roomHandles: { fin
 			const { roomId: id1, dot: dot1 } = pathDots[0];
 			const { roomId: id2, dot: dot2 } = pathDots[1];
 
-			const room1 = findRoom(({ room }) => room.id === id1);
-			const room2 = findRoom(({ room }) => room.id === id2);
+			const room1 = findRoom(({ data }) => data.id === id1);
+			const room2 = findRoom(({ data }) => data.id === id2);
 			const offset: IPointData = { x: referenceRadius, y: referenceRadius };
 			if (!(room1 && room2)) {
 				throw new Error(`Error: Rooms ${[room1, room2].filter(r => !r)} do not exist.`);

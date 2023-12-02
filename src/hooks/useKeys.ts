@@ -1,20 +1,17 @@
 import { Viewport } from "pixi-viewport";
-import { Container, FederatedPointerEvent, IPoint, IPointData } from "pixi.js";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Container, FederatedPointerEvent, IPoint } from "pixi.js";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { NodeObject } from "../components/canvas/NodeObject";
-import { calculateMidpoint, snapPointToArray } from "../lib";
 import { DungeonContext } from "../routes/Edit.lib";
-import { WithoutDrawActions } from "../types";
 import { useBindings } from "./useBindings";
-import { useNodes } from "./useNodes";
-import { usePaths } from "./usePaths";
 import { useRooms } from "./useRooms";
+import { createNode } from "../lib/nodes";
+import { standardNodeFontSize, standardNodeWidth } from "../lib";
 
 type UseKeysOptions = {
 	world?: Container | null;
 	viewport?: Viewport | null;
 	enabled: boolean;
-	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	roomHandles: ReturnType<typeof useRooms>;
 	setCursor: (mode: string) => void;
 }
@@ -27,7 +24,7 @@ export function useKeys({
 	setCursor,
 	roomHandles: { find: findRoom }
 }: UseKeysOptions) {
-	const { cursorOverUI, selected, setSelected, setMode } = useContext(DungeonContext);
+	const { cursorOverUI, setSelected, setMode } = useContext(DungeonContext);
 
 	// initializes cursor state
 	useEffect(() => {
@@ -41,9 +38,9 @@ export function useKeys({
 		const container = prev ?? NodeObject({
 			bgColor: "black",
 			fgColor: "darkgray",
-			width: 50,
+			width: standardNodeWidth,
 			shape: "diamond",
-			fontSize: 40,
+			fontSize: standardNodeFontSize,
 			bgOffset: 0.04,
 			iconText: "",
 			id: "nodeCursor"
@@ -98,7 +95,11 @@ export function useKeys({
 					nodeCursor.getBounds()
 				));
 				if (roomTarget) {
-					// select room
+					const newNode = createNode({ type: "key" });
+					roomTarget.set(prev => {
+						const nodes = Array.from(new Set([...prev.nodes, newNode]));
+						return { ...prev, nodes };
+					});
 					setSelected([roomTarget]);
 					setMode("move");
 				}

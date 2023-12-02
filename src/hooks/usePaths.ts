@@ -53,7 +53,7 @@ export function usePaths({ world, rooms, paths, setPaths }: UsePathsOptions) {
 
 	// create handles to add / sever paths
 	const link = useCallback((between: DungeonPath["between"]) => {
-		const path = { between, id: crypto.randomUUID() };
+		const path = { between, id: crypto.randomUUID(), nodes: [] };
 		setPaths(prev => [...prev, path]);
 		return path;
 	}, [setPaths]);

@@ -8,7 +8,6 @@ import { SubMenu } from "../components/ui/SubMenu";
 import { TopMenu } from "../components/ui/TopMenu";
 import { useCanvas } from "../hooks/useCanvas";
 import { useDungeon } from "../hooks/useDungeon";
-import { useNodes } from "../hooks/useNodes";
 import { usePaths } from "../hooks/usePaths";
 import { useRooms } from "../hooks/useRooms";
 import { EditMode } from "../types";
@@ -50,7 +49,6 @@ export function Edit() {
 
 	const roomHandles = useRooms({ world, rooms, setRooms });
 	const pathHandles = usePaths({ world, paths, setPaths, rooms });
-	const nodeHandles = useNodes({ roomHandles, pathHandles });
 
 	const capturePointer = useCallback((element: HTMLElement) => {
 		element.addEventListener("pointerover", () => setCursorOverUI(true));
@@ -71,7 +69,7 @@ export function Edit() {
 	return (
 		<DungeonContext.Provider value={{ selected, setSelected, mode, setMode, cursorOverUI, bindings, app }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
-				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
+				<Editor {...{ viewport, world, setCursor,  mode, windowRef, roomHandles, pathHandles }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
 					<TopMenu mode={mode} />
 					<div className="h-full w-full flex flex-row justify-between">

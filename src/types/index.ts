@@ -2,9 +2,7 @@ import { Viewport } from "pixi-viewport";
 import { Application, Container, DisplayObject, IApplicationOptions, ICanvas, IPointData } from "pixi.js";
 import { MutableRefObject } from "react";
 import { useGrid } from "../hooks/useGrid";
-import { useNodes } from "../hooks/useNodes";
 import { MapNode } from "../lib/nodes";
-import { useRooms } from "../hooks/useRooms";
 
 export type CSSDimension =
 	| "auto"
@@ -47,23 +45,11 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 	ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 export type EditMode = "move" | "build" | "path" | "key" | "lock";
-export type DrawActions = Pick<ReturnType<typeof useNodes>, "create">;
-export type WithoutDrawActions<T> = Omit<T, "add" | "remove" | "removeAll">;
-
-export type BuildActions = Pick<ReturnType<typeof useRooms>, "add" | "remove">;
-export type WithoutBuildActions<T> = Omit<T, "add" | "remove" | "removeAll">;
 
 export type Grid = ReturnType<typeof useGrid>;
-
-export type DungeonRoom = {
-	id: string;
-	points: IPointData[];
-	paths: { points: [IPointData, IPointData], node: MapNode, linkedRoomId: string | null }[]
-	position: IPointData;
-}
 export type DungeonPath = {
 	id: string;
-	node?: MapNode | null,
+	nodes: MapNode[],
 	// relative to room position
 	between: [{
 		roomId: string,
@@ -72,6 +58,13 @@ export type DungeonPath = {
 		roomId: string,
 		point: IPointData
 	}]
+}
+
+export type DungeonRoom = {
+	id: string;
+	points: IPointData[];
+	nodes: MapNode[];
+	position: IPointData;
 }
 
 export type DungeonFloor = {

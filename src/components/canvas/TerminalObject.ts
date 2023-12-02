@@ -1,6 +1,6 @@
 import { Sprite } from "pixi.js";
 import flag from "../../assets/feather/flag.svg";
-import { standardNodeWidth } from "../../lib";
+import { standardNodeWidth, standardNodeFontSize } from "../../lib";
 import { MapNodes } from "../../lib/nodes";
 import { NodeObject } from "./NodeObject";
 

@@ -1,4 +1,4 @@
-import { standardNodeWidth } from "../../lib";
+import { standardNodeWidth, standardNodeFontSize } from "../../lib";
 import { MapNodes } from "../../lib/nodes";
 import { NodeObject } from "./NodeObject";
 
@@ -8,7 +8,7 @@ export function LockObject(node: MapNodes<"lock">) {
 		fgColor: node.state.internal.color,
 		bgColor: "black",
 		shape: "square",
-		fontSize: 40,
+		fontSize: standardNodeFontSize,
 		bgOffset: 0.03,
 		iconText: node.displayName,
 		id: node.id,
