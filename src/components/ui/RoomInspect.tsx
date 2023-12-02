@@ -26,7 +26,7 @@ export function RoomInspect({ className, roomInspect, keysInspect }: Props) {
 				</button>
 			</div>
 			<div className="flex flex-col items-center gap-6 p-4">
-				{keysInspect.map((key, index) => <KeyInspect key={index} node={key} />)}
+				{keysInspect.map((inspect, index) => <KeyInspect key={index} nodeInspect={inspect} />)}
 			</div>
 		</div>
 	);

@@ -15,6 +15,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 export function Inspector({ enabled, width, className, roomHandles }: Props) {
 	const { selected } = useContext(DungeonContext);
 	const modules = useMemo(() => selected.map((target, index) => {
+		console.log("modules for :", target.data);
 		const room = roomHandles.find(handle => handle.data.id === target.data.id) as RoomHandle;
 		const roomInspect: InspectorHandles<"room"> = {
 			name: room.data.name ?? "",
@@ -27,13 +28,20 @@ export function Inspector({ enabled, width, className, roomHandles }: Props) {
 				tag: node.state.internal.tag ?? "",
 				setTag: (tag: string) => room.set(prev => {
 					const index = prev.nodes.indexOf(node);
-					const nodes = [...prev.nodes.slice(0, index), { ...node, tag }, ...prev.nodes.slice(index + 1)];
+					const nodes = [...prev.nodes.slice(0, index), { ...node, state: {
+						...node.state,
+						internal: {...node.state.internal, tag}
+					} }, ...prev.nodes.slice(index + 1)];
+					console.log("setting tag: ", {...node, tag});
 					return { ...prev, nodes };
 				}),
-				color: node.state.internal.color ?? "darkgray",
+				color: node.state.internal.color ?? "#222222",
 				setColor: (color: string) => room.set(prev => {
 					const index = prev.nodes.indexOf(node);
-					const nodes = [...prev.nodes.slice(0, index), { ...node, color }, ...prev.nodes.slice(index + 1)];
+					const nodes = [...prev.nodes.slice(0, index), { ...node, state: {
+						...node.state,
+						internal: {...node.state.internal, color}
+					} }, ...prev.nodes.slice(index + 1)];
 					return { ...prev, nodes };
 				}),
 				delete: () => console.warn("unimplemented")
