@@ -1,7 +1,7 @@
 import { MapNodes } from "../../lib/nodes";
 import { NodeObject } from "./NodeObject";
 
-export function SwitchObject(node: MapNodes<"switch">) {
+export function KeyObject(node: MapNodes<"key">) {
 	const obj = NodeObject({
 		bgColor: "black",
 		fgColor: node.state.internal.color,

@@ -2,7 +2,7 @@ import { standardNodeWidth } from "../../lib";
 import { MapNodes } from "../../lib/nodes";
 import { NodeObject } from "./NodeObject";
 
-export function BarrierObject(node: MapNodes<"barrier">) {
+export function LockObject(node: MapNodes<"lock">) {
 	const obj = NodeObject({
 		width: standardNodeWidth,
 		fgColor: node.state.internal.color,

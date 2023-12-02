@@ -1,5 +1,5 @@
 import { HTMLAttributes } from "react";
-import { CSSDimension, EditMode } from "../../types";
+import { CSSDimension } from "../../types";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
 	enabled: boolean;

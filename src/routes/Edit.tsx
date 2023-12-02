@@ -42,9 +42,9 @@ export function Edit() {
 		antialias: true
 	});
 
-	const nodeHandles = useNodes();
 	const roomHandles = useRooms({ world, rooms, setRooms });
 	const pathHandles = usePaths({ world, paths, setPaths, rooms });
+	const nodeHandles = useNodes({ roomHandles, pathHandles });
 
 	const capturePointer = useCallback((element: HTMLElement) => {
 		element.addEventListener("pointerover", () => setCursorOverUI(true));

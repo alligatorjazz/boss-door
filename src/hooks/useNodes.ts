@@ -1,11 +1,18 @@
 import { DisplayObject } from "pixi.js";
 import { useCallback } from "react";
-import { BarrierObject } from "../components/canvas/BarrierObject";
-import { SwitchObject } from "../components/canvas/SwitchObject";
+import { LockObject } from "../components/canvas/LockObject";
+import { KeyObject } from "../components/canvas/KeyObject";
 import { TerminalObject } from "../components/canvas/TerminalObject";
 import { MapNode, MapNodes, NodeHandle, createNode } from "../lib/nodes";
+import { useRooms } from "./useRooms";
+import { usePaths } from "./usePaths";
 
-export function useNodes() {
+type UseNodesOptions = {
+	roomHandles: ReturnType<typeof useRooms>;
+	pathHandles: ReturnType<typeof usePaths>;
+}
+
+export function useNodes({ roomHandles, pathHandles }: UseNodesOptions) {
 	const createNodeObject = useCallback((node: MapNode): DisplayObject => {
 		let obj: DisplayObject;
 		switch (node.type) {
@@ -17,12 +24,12 @@ export function useNodes() {
 				obj = TerminalObject(node);
 				break;
 			}
-			case "switch": {
-				obj = SwitchObject(node);
+			case "key": {
+				obj = KeyObject(node);
 				break;
 			}
-			case "barrier": {
-				obj = BarrierObject(node);
+			case "lock": {
+				obj = LockObject(node);
 				break;
 			}
 		}

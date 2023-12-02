@@ -10,7 +10,7 @@ const JsonSchema: z.ZodType<Json> = z.lazy(() =>
 	z.union([literalSchema, z.array(JsonSchema), z.record(JsonSchema)])
 );
 
-const MapNodeTypeSchema = z.enum(["entrance", "objective", "switch", "barrier"]);
+const MapNodeTypeSchema = z.enum(["entrance", "objective", "key", "lock"]);
 type MapNodeType = z.infer<typeof MapNodeTypeSchema>;
 type DerivedObjectState = ["position", ...(keyof DisplayObject)[]];
 const derive = <T extends DerivedObjectState>(keys: ZodEnum<T>): ZodEnum<T> => {
@@ -59,17 +59,17 @@ const ObjectiveNodeSchema = defineMapNode(z.literal("objective"), {
 	internal: z.null().optional()
 });
 
-const BarrierNodeSchema = defineMapNode(z.literal("barrier"), {
+const LockNodeSchema = defineMapNode(z.literal("lock"), {
 	derived: derive(z.enum(["position", "scale", "zIndex"])),
 	internal: z.object({
 		color: z.string()
 	})
 });
 
-const SwitchNodeSchema = defineMapNode(z.literal("switch"), {
+const KeyNodeSchema = defineMapNode(z.literal("key"), {
 	derived: defaultDerive,
 	internal: z.object({
-		barrierId: z.string().nullish(),
+		lockId: z.string().nullish(),
 		color: z.string()
 	})
 });
@@ -77,8 +77,8 @@ const SwitchNodeSchema = defineMapNode(z.literal("switch"), {
 export const MapNodeSchema = z.discriminatedUnion("type", [
 	EntranceNodeSchema,
 	ObjectiveNodeSchema,
-	BarrierNodeSchema,
-	SwitchNodeSchema
+	LockNodeSchema,
+	KeyNodeSchema
 ]);
 
 export type MapNode = z.infer<typeof MapNodeSchema>;
@@ -86,8 +86,8 @@ export type MapNode = z.infer<typeof MapNodeSchema>;
 export type MapNodes<T extends MapNodeType> =
 	T extends "entrance" ? z.infer<typeof EntranceNodeSchema> :
 	T extends "objective" ? z.infer<typeof ObjectiveNodeSchema> :
-	T extends "switch" ? z.infer<typeof SwitchNodeSchema> :
-	T extends "barrier" ? z.infer<typeof BarrierNodeSchema> :
+	T extends "key" ? z.infer<typeof KeyNodeSchema> :
+	T extends "lock" ? z.infer<typeof LockNodeSchema> :
 	never
 
 
@@ -141,8 +141,8 @@ export function createNode<T extends MapNodeType>({ type, name }: CreateNodeOpti
 
 			return node as MapNodes<T>;
 		}
-		case "switch": {
-			const node: MapNodes<"switch"> = {
+		case "key": {
+			const node: MapNodes<"key"> = {
 				type,
 				displayName,
 				id,
@@ -154,8 +154,8 @@ export function createNode<T extends MapNodeType>({ type, name }: CreateNodeOpti
 
 			return node as MapNodes<T>;
 		}
-		case "barrier": {
-			const node: MapNodes<"barrier"> = {
+		case "lock": {
+			const node: MapNodes<"lock"> = {
 				type,
 				displayName,
 				id,
@@ -172,24 +172,24 @@ export function createNode<T extends MapNodeType>({ type, name }: CreateNodeOpti
 	}
 }
 
-type MatchableNode = MapNodes<"barrier"> | MapNodes<"switch">
+type MatchableNode = MapNodes<"lock"> | MapNodes<"key">
 export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: MatchableNode[]): T {
 	switch (node.type) {
-		case "switch": {
-			// attempt to find an existing barrier with no switch attached
+		case "key": {
+			// attempt to find an existing lock with no key attached
 			const autoMatch = matchAgainst?.find(value => {
-				if (value.type === "barrier") {
-					const { id: barrierId } = value;
-					const matchingSwitch = matchAgainst.find(value => {
-						if (value.type === "switch" && value.state.internal.barrierId === barrierId) {
+				if (value.type === "lock") {
+					const { id: lockId } = value;
+					const matchingKey = matchAgainst.find(value => {
+						if (value.type === "key" && value.state.internal.lockId === lockId) {
 							return value;
 						}
 					});
-					if (!matchingSwitch) {
+					if (!matchingKey) {
 						return value;
 					}
 				}
-			}) as MapNodes<"barrier"> | null;
+			}) as MapNodes<"lock"> | null;
 
 			return {
 				...node,
@@ -197,19 +197,19 @@ export function autoMatch<T extends MatchableNode>(node: T, matchAgainst: Matcha
 					...node.state,
 					internal: {
 						...node.state.internal,
-						barrierId: autoMatch?.id,
+						lockId: autoMatch?.id,
 						color: autoMatch?.state.internal?.color ?? randomColor()
 					}
 				}
 			} as T;
 		}
-		case "barrier": {
+		case "lock": {
 			// attempt to find an existing key with no lock attached
 			const autoMatch = matchAgainst?.find(value => {
-				if (value.type === "switch" && !value.state.internal.barrierId) {
+				if (value.type === "key" && !value.state.internal.lockId) {
 					return value;
 				}
-			}) as MapNodes<"switch"> | null;
+			}) as MapNodes<"key"> | null;
 
 			return {
 				...node,

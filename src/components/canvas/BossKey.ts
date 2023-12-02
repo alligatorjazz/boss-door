@@ -1,10 +1,10 @@
 import { KeyIcon } from "./KeyIcon";
-import { SwitchObject } from "./SwitchObject";
+import { KeyObject } from "./KeyObject";
 
 type Props = { color: string; }
 export function BossKey({ color }: Props) {
 	const icon = KeyIcon({ bgColor: color, color: "black", horns: true });
-	const node = SwitchObject({ color, icon });
+	const node = KeyObject({ color, icon });
 
 	return node;
 }

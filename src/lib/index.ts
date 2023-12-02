@@ -1,4 +1,5 @@
 import { Container, DisplayObject, IPoint, IPointData, Point } from "pixi.js";
+import polylabel from "polylabel";
 import { MutableRefObject, ReactElement } from "react";
 
 export function updatePixiChildren(container: Container, ...children: ReactElement[]) {
@@ -132,4 +133,9 @@ export function calculateMidpoint(point1: IPointData, point2: IPointData): IPoin
 		y: (point1.y + point2.y) / 2,
 	};
 	return midpoint;
+}
+
+export function getInaccessibilityPole(points: IPointData[]) {
+	const arrayPoints = points.map(point => [point.x, point.y]);
+	return polylabel([arrayPoints]);
 }
