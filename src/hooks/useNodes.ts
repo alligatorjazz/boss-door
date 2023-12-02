@@ -8,12 +8,13 @@ import { useRooms } from "./useRooms";
 import { usePaths } from "./usePaths";
 
 type UseNodesOptions = {
+	world?: Container | null;
 	roomHandles: ReturnType<typeof useRooms>;
 	pathHandles: ReturnType<typeof usePaths>;
 }
 
 export function useNodes({ roomHandles, pathHandles }: UseNodesOptions) {
-	const createNodeObject = useCallback((node: MapNode): DisplayObject => {
+	const getObject = useCallback((node: MapNode): DisplayObject => {
 		let obj: DisplayObject;
 		switch (node.type) {
 			case "entrance": {
@@ -37,10 +38,7 @@ export function useNodes({ roomHandles, pathHandles }: UseNodesOptions) {
 		return obj;
 	}, []);
 
-	const create = useCallback(<T extends MapNode["type"]>(type: T) => {
-		const data = createNode({ type }) as MapNodes<T>;
-		return { data, getObject: () => createNodeObject(data) } as NodeHandle<T>;
-	}, [createNodeObject]);
+	// const getImage = useCallback
 
 	return { create };
 }

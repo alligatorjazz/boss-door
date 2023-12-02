@@ -11,9 +11,11 @@ import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
 import { SubMenu } from "../components/ui/SubMenu";
+import { Inspector } from "../components/ui/Inspector";
 
 export function Edit() {
-	const uiRef = useRef<HTMLDivElement>(null);
+	const toolsRef = useRef<HTMLDivElement>(null);
+	const inspectorRef = useRef<HTMLDivElement>(null);
 	const windowRef = useRef<HTMLDivElement>(null);
 	const [mode, setMode] = useState<EditMode>("path");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
@@ -56,8 +58,9 @@ export function Edit() {
 	}, [paths]);
 
 	useEffect(() => {
-		if (uiRef.current) {
-			capturePointer(uiRef.current);
+		if (toolsRef.current && inspectorRef.current) {
+			capturePointer(toolsRef.current);
+			capturePointer(inspectorRef.current);
 		}
 	}, [capturePointer]);
 
@@ -65,8 +68,8 @@ export function Edit() {
 		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
-				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">
-					<div ref={uiRef} className="h-full flex flex-row w-min">
+				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none flex flex-row justify-between">
+					<div ref={toolsRef} className="h-full flex flex-row w-min">
 						<ModeSelect className="flex-1 h-full" />
 						<SubMenu enabled={mode === "key"} width={"300px"}>
 							keys
@@ -74,6 +77,11 @@ export function Edit() {
 						<SubMenu enabled={mode === "lock"} width={"300px"}>
 							locks
 						</SubMenu>
+					</div>
+					<div ref={inspectorRef} className="h-full flex flex-row w-min">
+						<Inspector enabled={true} width={"200px"} >
+							test
+						</Inspector>
 					</div>
 				</section>
 			</div>
