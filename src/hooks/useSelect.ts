@@ -1,5 +1,5 @@
 import { Container, FederatedPointerEvent, Graphics, Point, Rectangle } from "pixi.js";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useContext } from "react";
 import { Viewport } from "pixi-viewport";
 import { useNodes } from "./useNodes";
 import { useBindings } from "./useBindings";
@@ -7,6 +7,7 @@ import { WithoutBuildActions, WithoutDrawActions } from "../types";
 import { useRooms } from "./useRooms";
 import { RoomHandle } from "../lib/rooms";
 import { usePaths } from "./usePaths";
+import { DungeonContext } from "../routes/Edit.lib";
 
 type UseSelectOptions = {
 	world?: Container | null;
@@ -20,9 +21,9 @@ type UseSelectOptions = {
 
 const selectColor = "#0253f5";
 export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, pathHandles: { drawPaths }, setCursor }: UseSelectOptions) {
+	const { selected, setSelected } = useContext(DungeonContext);
 	const [selectOrigin, setSelectOrigin] = useState<Point | null>(null);
 	const [selectTerminus, setSelectTerminus] = useState<Point | null>(null);
-	const [selected, setSelected] = useState<(RoomHandle)[]>([]);
 	const [moveOrigin, setMoveOrigin] = useState<Point | null>(null);
 
 	useEffect(() => {
@@ -36,7 +37,7 @@ export function useSelect({ world, enabled, viewport, nodeHandles, roomHandles, 
 			setSelected([]);
 			setMoveOrigin(null);
 		}
-	}, [enabled, setCursor, world]);
+	}, [enabled, setCursor, setSelected, world]);
 
 	const selectorRect = useMemo(() => {
 		const prev = world?.children

@@ -29,7 +29,7 @@ export function Editor({ world, viewport, setCursor, nodeHandles, mode, windowRe
 	useBuild({ world, enabled: mode === "build", viewport, setCursor, minCellSize: grid.minCellSize, roomHandles });
 	usePen({ world, nodeHandles, enabled: mode === "path", viewport, setCursor, roomHandles, pathHandles });
 	useKeys({ world, nodeHandles, enabled: mode === "key", viewport, setCursor, roomHandles, pathHandles });
-	
+
 	// handling mode changes
 	useEffect(() => {
 		if (world && viewport) {
@@ -52,6 +52,22 @@ export function Editor({ world, viewport, setCursor, nodeHandles, mode, windowRe
 					break;
 				}
 				case "path": {
+					viewport
+						.drag({ mouseButtons: "middle", wheel: true })
+						.clamp({ direction: "all" })
+						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
+						.clampZoom({ maxScale: 1 });
+					break;
+				}
+				case "key": {
+					viewport
+						.drag({ mouseButtons: "middle", wheel: true })
+						.clamp({ direction: "all" })
+						.wheel({ keyToPress: ["AltLeft"], wheelZoom: true, trackpadPinch: true })
+						.clampZoom({ maxScale: 1 });
+					break;
+				}
+				case "lock": {
 					viewport
 						.drag({ mouseButtons: "middle", wheel: true })
 						.clamp({ direction: "all" })

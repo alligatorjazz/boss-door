@@ -14,6 +14,7 @@ import { useRooms } from "../hooks/useRooms";
 import { EditMode } from "../types";
 import { KeyBindings } from "../types/keys";
 import { DungeonContext } from "./Edit.lib";
+import { RoomHandle } from "../lib/rooms";
 
 export function Edit() {
 	const toolsRef = useRef<HTMLDivElement>(null);
@@ -22,7 +23,8 @@ export function Edit() {
 	const [mode, setMode] = useState<EditMode>("key");
 	const [cursorOverUI, setCursorOverUI] = useState(false);
 	const [activeFloor] = useState(0);
-
+	const [selected, setSelected] = useState<(RoomHandle)[]>([]);
+	
 	const dungeon = useDungeon();
 	const { rooms, setRooms, paths, setPaths } = useMemo(() => {
 		return dungeon.getFloorHandles(activeFloor);
@@ -56,7 +58,7 @@ export function Edit() {
 	}, []);
 
 	useEffect(() => {
-		console.log(world?.children.map(child => ({ [child.name?? crypto.randomUUID()]: child })));
+		console.log(world?.children.map(child => ({ [child.name ?? crypto.randomUUID()]: child })));
 	}, [paths, world?.children]);
 
 	useEffect(() => {
@@ -67,7 +69,7 @@ export function Edit() {
 	}, [capturePointer]);
 
 	return (
-		<DungeonContext.Provider value={{ mode, setMode, cursorOverUI, bindings, app }}>
+		<DungeonContext.Provider value={{ selected, setSelected, mode, setMode, cursorOverUI, bindings, app }}>
 			<div className="w-[100dvw] h-[100dvh] overflow-hidden">
 				<Editor {...{ viewport, world, setCursor, nodeHandles, mode, windowRef, roomHandles, pathHandles }} />
 				<section className="absolute top-0 left-0 h-full w-full bg-transparent pointer-events-none">

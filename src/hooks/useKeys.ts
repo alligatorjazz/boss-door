@@ -16,19 +16,18 @@ type UseKeysOptions = {
 	enabled: boolean;
 	nodeHandles: WithoutDrawActions<ReturnType<typeof useNodes>>;
 	roomHandles: ReturnType<typeof useRooms>;
-	pathHandles: ReturnType<typeof usePaths>;
 	setCursor: (mode: string) => void;
 }
+
+// TODO: place key on room
 export function useKeys({
 	world,
 	enabled,
 	viewport,
 	setCursor,
-	roomHandles: { map: mapRooms },
-	pathHandles: { paths }
+	roomHandles: { find: findRoom }
 }: UseKeysOptions) {
-	const [snapPoints, setSnapPoints] = useState<{ linkedId: string, point: IPointData }[]>([]);
-	const { cursorOverUI } = useContext(DungeonContext);
+	const { cursorOverUI, selected, setSelected, setMode } = useContext(DungeonContext);
 
 	// initializes cursor state
 	useEffect(() => {
@@ -37,33 +36,20 @@ export function useKeys({
 		}
 	}, [enabled, setCursor, world]);
 
-	// recalculates valid snap points based on number of roomHandles 
-	useEffect(() => {
-		setSnapPoints(() => {
-			const points: (typeof snapPoints) = [];
-			// get list of path midpoints
-			paths.map(path => {
-				points.push({
-					linkedId: path.id,
-					point: calculateMidpoint(path.between[0].point, path.between[1].point)
-				});
-			});
-			return points;
-		});
-	}, [mapRooms, paths]);
-
 	const nodeCursor = useMemo(() => {
 		const prev = world?.children.find(obj => obj.name === "nodeCursor") as Container | undefined;
 		const container = prev ?? NodeObject({
 			bgColor: "black",
 			fgColor: "darkgray",
-			width: 100,
+			width: 50,
 			shape: "diamond",
 			fontSize: 40,
 			bgOffset: 0.04,
 			iconText: "",
 			id: "nodeCursor"
 		});
+		container.zIndex = 100;
+		container.alpha = 0.5;
 		world?.addChild(container);
 		console.log(container);
 		return container;
@@ -72,33 +58,25 @@ export function useKeys({
 	const syncCursor = useCallback((e: { getLocalPosition: (world: Container) => IPoint }) => {
 		if (world) {
 			const localMouse = e.getLocalPosition(world);
-			const closestSnap = snapPointToArray(localMouse, snapPoints.map((({ point }) => point)));
-			if (closestSnap.distance > 50) {
-				nodeCursor.position.copyFrom(localMouse);
-			} else {
-				nodeCursor.position.copyFrom(closestSnap.point);
-			}
+			nodeCursor.position.copyFrom(localMouse);
 		}
-	}, [nodeCursor.position, snapPoints, world]);
+	}, [nodeCursor.position, world]);
 
 	// pointer events
 	const handleBuildPointerDown = useCallback((e: FederatedPointerEvent) => {
 		if (world && enabled) {
 			if (e.button === 1) {
 				setCursor("grabbing");
+				nodeCursor.visible = false;
 			} else if (e.button === 0) {
 				setCursor("none");
 			} else {
 				setCursor("default");
 			}
 		}
-	}, [enabled, setCursor, world]);
+	}, [enabled, nodeCursor, setCursor, world]);
 
 	const handleBuildPointerMove = useCallback((e: FederatedPointerEvent) => {
-		if (e.button != 1) {
-			setCursor("none");
-		}
-
 		if (world && enabled && viewport) {
 			if (e.button === 1) {
 				setCursor("grabbing");
@@ -112,23 +90,27 @@ export function useKeys({
 		if (world && viewport && enabled && !cursorOverUI) {
 			// node placement code here
 			if (e.button === 1) {
-				setCursor("grabbing");
-			} else {
 				setCursor("none");
+				nodeCursor.visible = true;
+			} else {
+				// check for room placement
+				const roomTarget = findRoom(room => room.obj.getBounds().intersects(
+					nodeCursor.getBounds()
+				));
+				if (roomTarget) {
+					// select room
+					setSelected([roomTarget]);
+					setMode("move");
+				}
 			}
 		}
-	}, [world, viewport, enabled, cursorOverUI, setCursor]);
+	}, [world, viewport, enabled, cursorOverUI, setCursor, nodeCursor, findRoom, setSelected, setMode]);
 
 	// key events
 	const bind = useBindings();
 	useEffect(() => {
 		bind("escape", () => { });
 	}, [bind]);
-
-	// sync with world state 
-	useEffect(() => {
-
-	}, [world]);
 
 	// registers event listeners
 	useEffect(() => {
@@ -138,7 +120,9 @@ export function useKeys({
 			world.on("pointermove", handleBuildPointerMove);
 			world.on("pointerupoutside", handleBuildPointerUp);
 			world.on("wheel", syncCursor);
-			console.log("cursor: ", nodeCursor);
+			nodeCursor.visible = true;
+		} else {
+			nodeCursor.visible = false;
 		}
 
 		return () => {
