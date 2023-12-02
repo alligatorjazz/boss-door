@@ -4,6 +4,7 @@ import { RoomObject } from "../components/canvas/RoomObject";
 import { RoomHandle, createRoom } from "../lib/rooms";
 import { CustomDispatch, DungeonRoom } from "../types";
 import { createNodeObject } from "../lib/nodes";
+import { standardNodeWidth } from "../lib";
 type RemoveOptions = { id: string };
 type UseRoomsOptions = {
 	world?: Container | null;
@@ -76,13 +77,20 @@ export function useRooms({ world, rooms, setRooms }: UseRoomsOptions) {
 
 
 	useEffect(() => {
-		map(room => {
+		map((room) => {
 			if (room.data.nodes.length > 0) {
 				const nodeContainer = new Container();
 				for (const node of room.data.nodes) {
-					const nodeObject = world?.children.find(obj => obj.name === node.id) ?? createNodeObject(node);
+					const index = room.data.nodes.indexOf(node);
+					const nodeObject = createNodeObject(node);
+					nodeObject.position.set((index * standardNodeWidth), 0);
+					nodeObject.position.add({ x: standardNodeWidth * index, y: 0 });
 					nodeContainer.addChild(nodeObject);
+					if (index > 0) {
+						nodeContainer.scale.set(nodeContainer.scale.x / 1.3);
+					}
 				}
+
 				room.obj.removeChildren().map(child => child.destroy());
 				room.obj.addChild(nodeContainer);
 			}

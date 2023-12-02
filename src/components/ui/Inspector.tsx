@@ -54,7 +54,7 @@ export function Inspector({ enabled, width, className, roomHandles }: Props) {
 	return (
 		<div
 			style={enabled ? { width } : { width: 0 }}
-			className={["bg-gray-700 h-full overflow-hidden transition-all pointer-events-auto", className].join(" ")}
+			className={["bg-gray-700 h-full overflow-hidden overflow-y-scroll transition-all pointer-events-auto", className].join(" ")}
 		>
 			{modules}
 		</div>
