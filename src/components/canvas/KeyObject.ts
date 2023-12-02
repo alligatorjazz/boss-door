@@ -10,7 +10,7 @@ export function KeyObject(node: MapNodes<"key">) {
 		shape: "diamond",
 		fontSize: standardNodeFontSize,
 		bgOffset: 0.04,
-		iconText: node.displayName,
+		iconText: node.state.internal.tag?? "K",
 		id: node.id
 	});
 
